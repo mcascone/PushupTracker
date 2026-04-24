@@ -10,6 +10,8 @@
 		65BB9A5E2F9BE66000F6D0E8 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BB9A3B2F9AC9C100F6D0E8 /* WidgetKit.framework */; };
 		65BB9A5F2F9BE66000F6D0E8 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BB9A3D2F9AC9C100F6D0E8 /* SwiftUI.framework */; };
 		65BB9A6C2F9BE66200F6D0E8 /* PushupWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 65BB9A5D2F9BE66000F6D0E8 /* PushupWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		65BB9A732F9BE87100F6D0E8 /* PushupCore in Frameworks */ = {isa = PBXBuildFile; productRef = 65BB9A722F9BE87100F6D0E8 /* PushupCore */; };
+		65BB9A752F9BE8A600F6D0E8 /* PushupCore in Frameworks */ = {isa = PBXBuildFile; productRef = 65BB9A742F9BE8A600F6D0E8 /* PushupCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65BB9A732F9BE87100F6D0E8 /* PushupCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +121,7 @@
 			files = (
 				65BB9A5F2F9BE66000F6D0E8 /* SwiftUI.framework in Frameworks */,
 				65BB9A5E2F9BE66000F6D0E8 /* WidgetKit.framework in Frameworks */,
+				65BB9A752F9BE8A600F6D0E8 /* PushupCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +181,7 @@
 			);
 			name = PushupTracker;
 			packageProductDependencies = (
+				65BB9A722F9BE87100F6D0E8 /* PushupCore */,
 			);
 			productName = PushupTracker;
 			productReference = 65BB9A092F9ABAB800F6D0E8 /* PushupTracker.app */;
@@ -242,6 +247,7 @@
 			);
 			name = PushupWidgetsExtension;
 			packageProductDependencies = (
+				65BB9A742F9BE8A600F6D0E8 /* PushupCore */,
 			);
 			productName = PushupWidgetsExtension;
 			productReference = 65BB9A5D2F9BE66000F6D0E8 /* PushupWidgetsExtension.appex */;
@@ -282,6 +288,9 @@
 			);
 			mainGroup = 65BB9A002F9ABAB800F6D0E8;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				65BB9A712F9BE87100F6D0E8 /* XCLocalSwiftPackageReference "PushupCore" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 65BB9A0A2F9ABAB800F6D0E8 /* Products */;
 			projectDirPath = "";
@@ -760,6 +769,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		65BB9A712F9BE87100F6D0E8 /* XCLocalSwiftPackageReference "PushupCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = PushupCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		65BB9A722F9BE87100F6D0E8 /* PushupCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PushupCore;
+		};
+		65BB9A742F9BE8A600F6D0E8 /* PushupCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 65BB9A712F9BE87100F6D0E8 /* XCLocalSwiftPackageReference "PushupCore" */;
+			productName = PushupCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 65BB9A012F9ABAB800F6D0E8 /* Project object */;
 }
