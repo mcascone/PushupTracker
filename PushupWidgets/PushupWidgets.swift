@@ -7,7 +7,6 @@
 
 import WidgetKit
 import SwiftUI
-import PushupCore
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {

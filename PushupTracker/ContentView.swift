@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import PushupCore
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
