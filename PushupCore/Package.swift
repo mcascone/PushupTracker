@@ -6,7 +6,7 @@ import PackageDescription
 
 let package = Package(
     name: "PushupCore",
-    platforms: [.iOS(.v18)],
+    platforms: [.iOS(.v18), .macOS(.v14)],
     products: [
         .library(name: "PushupCore", targets: ["PushupCore"]),
     ],

@@ -36,7 +36,7 @@ Exit criteria:
 
 ## Last iteration notes
 
-M1 completed via manual bootstrap per BOOTSTRAP.md. Hit several snags: widget target product name got corrupted by pasted markdown (fixed by recreating target cleanly); UI test target had to be fully removed including scheme references; entitlements file landed at repo root instead of inside widget folder (moved to PushupWidgets/ and updated CODE_SIGN_ENTITLEMENTS build setting); `iPhone 16,OS=18.0` destination doesn't exist on Xcode 26 (switched to `iPhone 17 Pro,OS=latest`). All M1 exit criteria met; `xcodebuild test` and `swift test --package-path PushupCore` both pass on fe154af.
+Added `PushupSet` SwiftData `@Model` in `PushupCore/Sources/PushupCore/Models/PushupSet.swift` matching spec §5 exactly. Replaced placeholder `PushupCore.swift` and placeholder `PushupCoreTests.swift` with real `PushupSetTests.swift` (3 tests: init defaults, explicit timestamp, unique ids). Hit a snag: `swift test` on host macOS failed because the `@Model` macro expansion references `SwiftData.Schema` which is only available on macOS 14+, and the package only declared `.iOS(.v18)`. Added `.macOS(.v14)` to `Package.swift` platforms so the package can be tested on the host Mac. Both `swift test --package-path PushupCore` (3 tests pass) and full `xcodebuild test` on the `PushupTracker` scheme pass. Store, SharedContainer factory, and their tests are the next units of M2.
 
 ## Open questions
 
