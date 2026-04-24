@@ -1,8 +1,8 @@
 //
 //  AppIntent.swift
-//  - Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets
+//  PushupWidgets
 //
-//  Created by Maximilian Cascone on 4/23/26.
+//  Created by Maximilian Cascone on 4/24/26.
 //
 
 import WidgetKit

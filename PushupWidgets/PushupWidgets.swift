@@ -1,8 +1,8 @@
 //
-//  __Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupWidgets.swift
-//  - Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets
+//  PushupWidgets.swift
+//  PushupWidgets
 //
-//  Created by Maximilian Cascone on 4/23/26.
+//  Created by Maximilian Cascone on 4/24/26.
 //
 
 import WidgetKit
@@ -41,7 +41,7 @@ struct SimpleEntry: TimelineEntry {
     let configuration: ConfigurationAppIntent
 }
 
-struct __Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupWidgetsEntryView : View {
+struct PushupWidgetsEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
@@ -55,12 +55,12 @@ struct __Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupW
     }
 }
 
-struct __Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupWidgets: Widget {
-    let kind: String = "__Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupWidgets"
+struct PushupWidgets: Widget {
+    let kind: String = "PushupWidgets"
 
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-            __Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupWidgetsEntryView(entry: entry)
+            PushupWidgetsEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
     }
@@ -81,7 +81,7 @@ extension ConfigurationAppIntent {
 }
 
 #Preview(as: .systemSmall) {
-    __Product_Name___PushupWidgets______Product_Name___PushupWidgets__PushupWidgets()
+    PushupWidgets()
 } timeline: {
     SimpleEntry(date: .now, configuration: .smiley)
     SimpleEntry(date: .now, configuration: .starEyes)
