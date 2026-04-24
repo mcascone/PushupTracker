@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		65BB9A3C2F9AC9C100F6D0E8 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BB9A3B2F9AC9C100F6D0E8 /* WidgetKit.framework */; };
+		65BB9A3E2F9AC9C100F6D0E8 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BB9A3D2F9AC9C100F6D0E8 /* SwiftUI.framework */; };
+		65BB9A4B2F9AC9C300F6D0E8 /* PushupWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 65BB9A392F9AC9C100F6D0E8 /* PushupWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		65BB9A192F9ABABB00F6D0E8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +27,47 @@
 			remoteGlobalIDString = 65BB9A082F9ABAB800F6D0E8;
 			remoteInfo = PushupTracker;
 		};
+		65BB9A492F9AC9C300F6D0E8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65BB9A012F9ABAB800F6D0E8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 65BB9A382F9AC9C100F6D0E8;
+			remoteInfo = "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgetsExtension";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		65BB9A502F9AC9C300F6D0E8 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				65BB9A4B2F9AC9C300F6D0E8 /* PushupWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		65BB9A092F9ABAB800F6D0E8 /* PushupTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PushupTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65BB9A182F9ABABB00F6D0E8 /* PushupTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PushupTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65BB9A222F9ABABB00F6D0E8 /* PushupTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PushupTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		65BB9A392F9AC9C100F6D0E8 /* PushupWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushupWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		65BB9A3B2F9AC9C100F6D0E8 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		65BB9A3D2F9AC9C100F6D0E8 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		65BB9A4C2F9AC9C300F6D0E8 /* Exceptions for "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets" folder in "PushupWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 65BB9A382F9AC9C100F6D0E8 /* PushupWidgets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		65BB9A0B2F9ABAB800F6D0E8 /* PushupTracker */ = {
@@ -40,9 +80,12 @@
 			path = PushupTrackerTests;
 			sourceTree = "<group>";
 		};
-		65BB9A252F9ABABB00F6D0E8 /* PushupTrackerUITests */ = {
+		65BB9A3F2F9AC9C100F6D0E8 /* - Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = PushupTrackerUITests;
+			exceptions = (
+				65BB9A4C2F9AC9C300F6D0E8 /* Exceptions for "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets" folder in "PushupWidgets" target */,
+			);
+			path = "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +112,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		65BB9A362F9AC9C100F6D0E8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65BB9A3E2F9AC9C100F6D0E8 /* SwiftUI.framework in Frameworks */,
+				65BB9A3C2F9AC9C100F6D0E8 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,7 +129,8 @@
 			children = (
 				65BB9A0B2F9ABAB800F6D0E8 /* PushupTracker */,
 				65BB9A1B2F9ABABB00F6D0E8 /* PushupTrackerTests */,
-				65BB9A252F9ABABB00F6D0E8 /* PushupTrackerUITests */,
+				65BB9A3F2F9AC9C100F6D0E8 /* - Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets */,
+				65BB9A3A2F9AC9C100F6D0E8 /* Frameworks */,
 				65BB9A0A2F9ABAB800F6D0E8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +141,18 @@
 				65BB9A092F9ABAB800F6D0E8 /* PushupTracker.app */,
 				65BB9A182F9ABABB00F6D0E8 /* PushupTrackerTests.xctest */,
 				65BB9A222F9ABABB00F6D0E8 /* PushupTrackerUITests.xctest */,
+				65BB9A392F9AC9C100F6D0E8 /* PushupWidgets.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		65BB9A3A2F9AC9C100F6D0E8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				65BB9A3B2F9AC9C100F6D0E8 /* WidgetKit.framework */,
+				65BB9A3D2F9AC9C100F6D0E8 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +165,12 @@
 				65BB9A052F9ABAB800F6D0E8 /* Sources */,
 				65BB9A062F9ABAB800F6D0E8 /* Frameworks */,
 				65BB9A072F9ABAB800F6D0E8 /* Resources */,
+				65BB9A502F9AC9C300F6D0E8 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				65BB9A4A2F9AC9C300F6D0E8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				65BB9A0B2F9ABAB800F6D0E8 /* PushupTracker */,
@@ -153,15 +218,34 @@
 			dependencies = (
 				65BB9A242F9ABABB00F6D0E8 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				65BB9A252F9ABABB00F6D0E8 /* PushupTrackerUITests */,
-			);
 			name = PushupTrackerUITests;
 			packageProductDependencies = (
 			);
 			productName = PushupTrackerUITests;
 			productReference = 65BB9A222F9ABABB00F6D0E8 /* PushupTrackerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		65BB9A382F9AC9C100F6D0E8 /* PushupWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65BB9A4D2F9AC9C300F6D0E8 /* Build configuration list for PBXNativeTarget "PushupWidgets" */;
+			buildPhases = (
+				65BB9A352F9AC9C100F6D0E8 /* Sources */,
+				65BB9A362F9AC9C100F6D0E8 /* Frameworks */,
+				65BB9A372F9AC9C100F6D0E8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				65BB9A3F2F9AC9C100F6D0E8 /* - Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets */,
+			);
+			name = PushupWidgets;
+			packageProductDependencies = (
+			);
+			productName = "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgetsExtension";
+			productReference = 65BB9A392F9AC9C100F6D0E8 /* PushupWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -184,6 +268,9 @@
 						CreatedOnToolsVersion = 26.4.1;
 						TestTargetID = 65BB9A082F9ABAB800F6D0E8;
 					};
+					65BB9A382F9AC9C100F6D0E8 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 				};
 			};
 			buildConfigurationList = 65BB9A042F9ABAB800F6D0E8 /* Build configuration list for PBXProject "PushupTracker" */;
@@ -203,6 +290,7 @@
 				65BB9A082F9ABAB800F6D0E8 /* PushupTracker */,
 				65BB9A172F9ABABB00F6D0E8 /* PushupTrackerTests */,
 				65BB9A212F9ABABB00F6D0E8 /* PushupTrackerUITests */,
+				65BB9A382F9AC9C100F6D0E8 /* PushupWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +311,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		65BB9A202F9ABABB00F6D0E8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		65BB9A372F9AC9C100F6D0E8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +348,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		65BB9A352F9AC9C100F6D0E8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +367,11 @@
 			isa = PBXTargetDependency;
 			target = 65BB9A082F9ABAB800F6D0E8 /* PushupTracker */;
 			targetProxy = 65BB9A232F9ABABB00F6D0E8 /* PBXContainerItemProxy */;
+		};
+		65BB9A4A2F9AC9C300F6D0E8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 65BB9A382F9AC9C100F6D0E8 /* PushupWidgets */;
+			targetProxy = 65BB9A492F9AC9C300F6D0E8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -405,6 +512,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -417,7 +525,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -437,6 +545,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -449,7 +558,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -505,6 +614,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9WNXKEF4SM;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mcmusicworkshop.PushupTrackerUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -525,6 +635,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9WNXKEF4SM;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mcmusicworkshop.PushupTrackerUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -535,6 +646,68 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = PushupTracker;
+			};
+			name = Release;
+		};
+		65BB9A4E2F9AC9C300F6D0E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9WNXKEF4SM;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_NAME)";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mcmusicworkshop.PushupTracker.PushupWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		65BB9A4F2F9AC9C300F6D0E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9WNXKEF4SM;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "- Product Name: `PushupWidgets`   - Product Name: `PushupWidgets` PushupWidgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_NAME)";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mcmusicworkshop.PushupTracker.PushupWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -573,6 +746,15 @@
 			buildConfigurations = (
 				65BB9A332F9ABABB00F6D0E8 /* Debug */,
 				65BB9A342F9ABABB00F6D0E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		65BB9A4D2F9AC9C300F6D0E8 /* Build configuration list for PBXNativeTarget "PushupWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65BB9A4E2F9AC9C300F6D0E8 /* Debug */,
+				65BB9A4F2F9AC9C300F6D0E8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
