@@ -8,7 +8,7 @@ Goal: Implement `PushupSet` SwiftData model and `PushupStore` read/write facade 
 
 Exit criteria:
 - [ ] `PushupSet` `@Model` class exists in `PushupCore/Sources/PushupCore/Models/PushupSet.swift` matching spec §5 exactly (fields: `id`, `count`, `timestamp`, `healthKitSyncedAt`)
-- [ ] `SharedContainer` factory exists in `PushupCore/Sources/PushupCore/Persistence/ModelContainer+Shared.swift` matching spec §5 reference implementation
+- [x] `SharedContainer` factory exists in `PushupCore/Sources/PushupCore/Persistence/ModelContainer+Shared.swift` matching spec §5 reference implementation
 - [ ] `PushupStore` facade exists in `PushupCore/Sources/PushupCore/Persistence/PushupStore.swift` with public methods: `insert(count: Int, at: Date = .now)`, `delete(_ set: PushupSet)`, `setsForToday()`, `setsForDay(_ date: Date)`, `allSets()`
 - [ ] Swift Testing tests in `PushupCore/Tests/PushupCoreTests/`:
   - `PushupSetTests.swift` — model init defaults, uniqueness of id
@@ -36,7 +36,7 @@ Exit criteria:
 
 ## Last iteration notes
 
-Added `PushupSet` SwiftData `@Model` in `PushupCore/Sources/PushupCore/Models/PushupSet.swift` matching spec §5 exactly. Replaced placeholder `PushupCore.swift` and placeholder `PushupCoreTests.swift` with real `PushupSetTests.swift` (3 tests: init defaults, explicit timestamp, unique ids). Hit a snag: `swift test` on host macOS failed because the `@Model` macro expansion references `SwiftData.Schema` which is only available on macOS 14+, and the package only declared `.iOS(.v18)`. Added `.macOS(.v14)` to `Package.swift` platforms so the package can be tested on the host Mac. Both `swift test --package-path PushupCore` (3 tests pass) and full `xcodebuild test` on the `PushupTracker` scheme pass. Store, SharedContainer factory, and their tests are the next units of M2.
+Added `SharedContainer` factory in `PushupCore/Sources/PushupCore/Persistence/ModelContainer+Shared.swift` matching spec §5 reference implementation verbatim: `appGroupID = "group.com.mcmusicworkshop.pushuptracker"`, `storeFilename = "PushupTracker.sqlite"`, and `makeModelContainer()` that resolves the App Group container URL and builds a `ModelContainer` for `PushupSet`. No tests added for the factory itself — per spec §10, store tests will use an in-memory `ModelContainer` for isolation, and invoking `makeModelContainer()` on host macOS without App Group entitlements would hit the `fatalError` guard. `swift test --package-path PushupCore` still passes (3 tests, unchanged) and full `xcodebuild test` on the `PushupTracker` scheme passes. Next units of M2: `PushupStore` facade and its tests.
 
 ## Open questions
 
