@@ -1,6 +1,9 @@
 import SwiftUI
+import PushupCore
 
 struct AppShell: View {
+  let healthService: any HealthKitService
+
   var body: some View {
     TabView {
       TodayView()
@@ -12,7 +15,7 @@ struct AppShell: View {
       Text("Trends")
         .tabItem { Label("Trends", systemImage: "chart.bar.fill") }
 
-      SettingsView()
+      SettingsView(healthService: healthService)
         .tabItem { Label("Settings", systemImage: "gearshape") }
     }
   }
