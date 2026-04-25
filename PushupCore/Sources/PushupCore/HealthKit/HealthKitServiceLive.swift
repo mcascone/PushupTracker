@@ -11,6 +11,19 @@ public actor HealthKitServiceLive: HealthKitService {
         self.healthStore = healthStore
     }
 
+    public func authorizationStatus() async -> HealthKitAuthorizationStatus {
+        guard HKHealthStore.isHealthDataAvailable() else { return .denied }
+        let workoutStatus = healthStore.authorizationStatus(for: HKObjectType.workoutType())
+        let energyStatus = healthStore.authorizationStatus(for: HKQuantityType(.activeEnergyBurned))
+        if workoutStatus == .sharingDenied || energyStatus == .sharingDenied {
+            return .denied
+        }
+        if workoutStatus == .sharingAuthorized && energyStatus == .sharingAuthorized {
+            return .granted
+        }
+        return .notDetermined
+    }
+
     public func requestAuthorization() async throws -> Bool {
         guard HKHealthStore.isHealthDataAvailable() else { return false }
         let typesToShare: Set<HKSampleType> = [

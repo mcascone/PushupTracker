@@ -7,15 +7,26 @@ public actor HealthKitServiceMock: HealthKitService {
     }
 
     public private(set) var authorizationCallCount: Int = 0
+    public private(set) var statusCallCount: Int = 0
     public private(set) var syncCalls: [SyncCall] = []
     private var authorizationResult: Bool = true
     private var authorizationError: Error?
     private var syncError: Error?
+    private var status: HealthKitAuthorizationStatus = .notDetermined
 
     public init() {}
 
     public func setAuthorizationResult(_ value: Bool) {
         authorizationResult = value
+    }
+
+    public func setAuthorizationStatus(_ value: HealthKitAuthorizationStatus) {
+        status = value
+    }
+
+    public func authorizationStatus() async -> HealthKitAuthorizationStatus {
+        statusCallCount += 1
+        return status
     }
 
     public func setAuthorizationError(_ error: Error?) {

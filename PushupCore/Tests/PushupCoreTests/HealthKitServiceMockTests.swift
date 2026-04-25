@@ -6,6 +6,24 @@ import Testing
 struct HealthKitServiceMockTests {
     private struct StubError: Error, Equatable {}
 
+    @Test("authorizationStatus returns configured value and counts calls")
+    func authorizationStatusReturns() async {
+        let mock = HealthKitServiceMock()
+
+        var status = await mock.authorizationStatus()
+        #expect(status == .notDetermined)
+
+        await mock.setAuthorizationStatus(.granted)
+        status = await mock.authorizationStatus()
+        #expect(status == .granted)
+
+        await mock.setAuthorizationStatus(.denied)
+        status = await mock.authorizationStatus()
+        #expect(status == .denied)
+
+        await #expect(mock.statusCallCount == 3)
+    }
+
     @Test("requestAuthorization records calls and returns configured result")
     func authorizationRecordsAndReturns() async throws {
         let mock = HealthKitServiceMock()
