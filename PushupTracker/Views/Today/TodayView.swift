@@ -17,9 +17,26 @@ struct TodayView: View {
     VStack(spacing: 24) {
       heroSection
       quickAddButtons
-      Spacer()
+      timelineList
     }
     .padding()
+  }
+
+  private var timelineList: some View {
+    List {
+      ForEach(todaySets) { set in
+        HStack {
+          Text(set.timestamp, format: .dateTime.hour().minute())
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
+          Text("—")
+            .foregroundStyle(.secondary)
+          Text("\(set.count) \(set.count == 1 ? "pushup" : "pushups")")
+        }
+      }
+      .onDelete(perform: deleteSets)
+    }
+    .listStyle(.plain)
   }
 
   private var heroSection: some View {
@@ -54,6 +71,13 @@ struct TodayView: View {
   private func add(_ count: Int) {
     let set = PushupSet(count: count)
     modelContext.insert(set)
+    try? modelContext.save()
+  }
+
+  private func deleteSets(at offsets: IndexSet) {
+    for index in offsets {
+      modelContext.delete(todaySets[index])
+    }
     try? modelContext.save()
   }
 
