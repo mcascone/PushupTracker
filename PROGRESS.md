@@ -2,21 +2,21 @@
 
 ## Current milestone
 
-**M6 — History view**
+**M7 — Trends view**
 
-Goal: Per spec §8, add a History tab showing days with activity (newest first, grouped by month, row format `"Monday, Apr 20 — 85 pushups"`), and a tappable `DayDetailView` showing that day's set timeline (read-only in v1).
+Goal: Per spec §8, add a Trends tab with a segmented 7 / 30 / 90 day control, a Swift Charts bar chart of daily totals (one `BarMark` per day), and below the chart a summary block showing total for the period, average per day, and best day.
 
 Exit criteria:
-- [ ] History tab in `AppShell` replaced from placeholder `Text("History")` with a real `HistoryView`
-- [ ] `HistoryView` lists days with at least one set, newest first, grouped by month
-- [ ] Each row shows the formatted date and the daily total
-- [ ] Tapping a row navigates to a `DayDetailView` that shows the set timeline for that day (read-only)
-- [ ] Days/totals are derived from `PushupSet` records via `PushupCore` (SwiftData is source of truth)
-- [ ] No third-party deps; SwiftUI only
+- [ ] Trends tab in `AppShell` replaced from placeholder `Text("Trends")` with a real `TrendsView`
+- [ ] Segmented `Picker` toggles between 7, 30, 90 days
+- [ ] Swift Charts `Chart { BarMark(x: .value("Day", date), y: .value("Pushups", total)) }` renders one bar per day in the selected window (zero-fill missing days so the x-axis is continuous)
+- [ ] Below the chart, three labeled stats: total, average per day (rounded sensibly), best day (date + count)
+- [ ] Daily totals are derived from `PushupSet` records via `PushupCore` (SwiftData is source of truth)
+- [ ] No third-party deps; SwiftUI + Swift Charts only
 - [ ] `swift test --package-path PushupCore` passes (add tests if a new derivation helper lands in `PushupCore`)
 - [ ] Full `xcodebuild test` on `PushupTracker` passes
 - [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M6: <description>`
+- [ ] Committed with message `M7: <description>`
 
 ## Completed
 
@@ -25,16 +25,20 @@ Exit criteria:
 - [x] M3 — Today view (commit 3f35911)
 - [x] M4 — HealthKit service (commit a3cd20f)
 - [x] M5 — Settings view (commit 7b4c41b)
+- [x] M6 — History view (commit pending)
 
 ## Remaining
 
-- [ ] M6 — History view
 - [ ] M7 — Trends view
 - [ ] M8 — Home Screen widget
 - [ ] M9 — Lock Screen widget
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Implemented M6 — History view in one iteration. Added `PushupTracker/Views/History/HistoryView.swift` and `PushupTracker/Views/History/DayDetailView.swift`, and wired `HistoryView()` into `AppShell.swift` replacing the `Text("History")` placeholder. `HistoryView` uses a single `@Query(sort: \PushupSet.timestamp, order: .reverse)` to fetch all sets, then in a computed `monthGroups` property buckets them by `Calendar.current.startOfDay(for:)` (each becoming a `DayGroup` with sorted-ascending sets and a summed total), then buckets the days by year+month (`calendar.date(from: dateComponents([.year, .month], ...))`) into `MonthGroup`s sorted descending. Each `Section` has a header formatted as `month(.wide).year()` (e.g. "April 2026"), and each row inside is a `NavigationLink` showing weekday/month/day plus the daily total in `"N pushups"` form. Empty state uses `ContentUnavailableView` with a calendar icon. `DayDetailView` is read-only: takes the precomputed `dayStart: Date` + `[PushupSet]` directly (avoids dynamic `@Query` predicates), shows a header section with total + set count, and a Timeline section listing each set as `"8:42 AM — 10 pushups"` mirroring `TodayView`'s row format. Title uses inline display mode with the day's formatted date. No new `PushupCore` code was needed — the spec's "derive from sets" rule and the existing `@Query` plus pure Swift grouping cover it. Touched 3 files (within the cap). Used a small `private extension Date.FormatStyle { func format(_:) }` helper so format-style constants read cleanly at the call site. `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~36s with zero compiler warnings. Saw the familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic on all three edited files; ignored, as the real build resolved the package fine. M6 exit criteria all met.
+
+### Earlier iteration notes
 
 Closed out M5 by wiring the "Sync now" button to the same `HealthSyncController` used on foreground. Refactored `HealthSyncController.syncToday()` into a generalized `private func syncDay(_ day: Date)` that takes any target date — kept the existing fetch-by-day-window + `WorkoutSynthesizer.plan(for:on:)` + `service.sync(dayID:plan:)` + `healthKitSyncedAt` stamping logic identical, just parameterized on `day` instead of always `Date()`. Added `func syncNow() async` that calls `requestAuthorizationIfNeeded()` then `syncDay(today)` then `syncDay(yesterday)` (yesterday derived via `Calendar.current.date(byAdding: .day, value: -1, ...)`), per spec §6 manual-sync trigger. The foreground path (`appBecameActive`) now calls `syncDay(Date())`. Plumbed an `onSyncNow: () async -> Void` closure from `PushupTrackerApp` (capturing `await syncController.syncNow()`) through `AppShell` into `SettingsView`. In `SettingsView`, added a "Sync now" button under the Health section that wraps the call in a `Task` with an `isSyncing` flag (disables the button while in flight) and calls `refreshStatus()` after the sync completes so any newly granted/denied state reflects in the UI. Touched 4 files (`HealthSyncController.swift`, `SettingsView.swift`, `AppShell.swift`, `PushupTrackerApp.swift`) — slightly above the typical 3-file cap, but the change is one tightly coupled feature with no good way to split it without leaving a half-wired button. `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~41s with zero warnings. Saw the now-familiar SourceKit "No such module 'PushupCore'" indexer-cache stale diagnostic on all four edited files; ignored, as the real build resolved the package fine. M5 exit criteria all met; promoted M6 — History view to current milestone with concrete exit criteria from spec §8.
 

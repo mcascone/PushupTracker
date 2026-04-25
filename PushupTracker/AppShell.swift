@@ -10,7 +10,7 @@ struct AppShell: View {
       TodayView()
         .tabItem { Label("Today", systemImage: "figure.strengthtraining.traditional") }
 
-      Text("History")
+      HistoryView()
         .tabItem { Label("History", systemImage: "calendar") }
 
       Text("Trends")
