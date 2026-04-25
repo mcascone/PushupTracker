@@ -5,18 +5,33 @@ import PushupCore
 @main
 struct PushupTrackerApp: App {
   let sharedModelContainer: ModelContainer
+  @State private var syncController: HealthSyncController
+  @Environment(\.scenePhase) private var scenePhase
 
   init() {
+    let container: ModelContainer
     do {
-      sharedModelContainer = try SharedContainer.makeModelContainer()
+      container = try SharedContainer.makeModelContainer()
     } catch {
       fatalError("Could not create shared ModelContainer: \(error)")
     }
+    sharedModelContainer = container
+    _syncController = State(
+      initialValue: HealthSyncController(
+        container: container,
+        service: HealthKitServiceLive()
+      )
+    )
   }
 
   var body: some Scene {
     WindowGroup {
       AppShell()
+        .onChange(of: scenePhase) { _, newPhase in
+          if newPhase == .active {
+            syncController.appBecameActive()
+          }
+        }
     }
     .modelContainer(sharedModelContainer)
   }

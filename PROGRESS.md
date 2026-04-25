@@ -2,34 +2,31 @@
 
 ## Current milestone
 
-**M4 — HealthKit service**
+**M5 — Settings view**
 
-Goal: Implement HealthKit write integration per spec §6 with no new UI surface beyond what foreground sync needs. Add the `HealthKitService` protocol with a live impl and a mock, build the `WorkoutSynthesizer` that turns a day's `PushupSet` records into one `HKWorkout` with nested `HKWorkoutActivity` per set, and wire up the foreground-sync trigger from the app target. Stamp `healthKitSyncedAt` on success. Tests exercise the mock and the synthesizer.
+Goal: Add the Settings tab per spec §8 — a visible HealthKit section (permission status: granted / denied / not determined, with an "Open Health settings" link when denied), a "Sync now" button that syncs today + yesterday on demand, and an About section (app version, build number, credits, feedback link). No new user-configurable settings in v1.
 
 Exit criteria:
-- [ ] `NSHealthUpdateUsageDescription` set in app target Info.plist; no `NSHealthShareUsageDescription`
-- [ ] HealthKit entitlement enabled on app target only (not widget)
-- [ ] `Constants` enum in `PushupCore` matches spec §6 (`secondsPerPushup`, `kcalPerPushup`, `activityType`, `dayIDMetadataKey`)
-- [ ] `HealthKitService` protocol in `PushupCore` with `requestAuthorization()` and `syncDay(_:)` (or equivalent)
-- [ ] `HealthKitServiceLive` implements the delete-and-rewrite-per-day algorithm using `HKWorkoutBuilder` with one `HKWorkoutActivity` per set
-- [ ] `HealthKitServiceMock` records calls so tests can assert on them
-- [ ] `WorkoutSynthesizer` in `PushupCore` is a pure function: `[PushupSet] -> WorkoutPlan` (start/end/activities/energy) — testable without HealthKit
-- [ ] On successful sync, every set for that day has `healthKitSyncedAt` stamped
-- [ ] App requests authorization on first launch and triggers a sync for today on foreground (debounced 1s)
-- [ ] `swift test --package-path PushupCore` passes (including new synthesizer tests)
+- [ ] Settings tab in `AppShell` replaced from placeholder `Text("Settings")` with a real `SettingsView`
+- [ ] `SettingsView` shows current HealthKit authorization status (granted / denied / not determined)
+- [ ] When denied, a control opens `Health.app` permissions (or surfaces fallback guidance)
+- [ ] "Sync now" button manually syncs today + yesterday via the same `HealthKitService` used on foreground
+- [ ] About section shows `CFBundleShortVersionString`, `CFBundleVersion`, credits text, and a feedback link target (TBD email — placeholder acceptable, surface as Open question)
+- [ ] No third-party deps; SwiftUI only
+- [ ] `swift test --package-path PushupCore` passes
 - [ ] Full `xcodebuild test` on `PushupTracker` passes
 - [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M4: <description>`
+- [ ] Committed with message `M5: <description>`
 
 ## Completed
 
 - [x] M1 — Project skeleton (commit fe154af)
 - [x] M2 — Data model + store (commit 94e7443)
 - [x] M3 — Today view (commit 3f35911)
+- [x] M4 — HealthKit service (commit pending — recorded next iteration)
 
 ## Remaining
 
-- [ ] M5 — Settings view
 - [ ] M6 — History view
 - [ ] M7 — Trends view
 - [ ] M8 — Home Screen widget
@@ -37,6 +34,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Closed out M4 by wiring foreground sync into the app target. Added `PushupTracker/Services/HealthSyncController.swift` as a `@MainActor` final class holding a `ModelContainer` and an `any HealthKitService`. `appBecameActive()` cancels any in-flight debounce and schedules a `Task` that sleeps 1s, then runs `requestAuthorizationIfNeeded()` (one-shot, guarded by `didRequestAuthorization`) followed by `syncToday()`. `syncToday()` builds a fresh `ModelContext` from the container, fetches `PushupSet` records whose `timestamp` falls in `[startOfDay, startOfTomorrow)` via `FetchDescriptor` + `#Predicate`, asks `WorkoutSynthesizer.plan(for:on:)` for the plan (nil for zero sets, which is the delete-only path the live service already handles), and `WorkoutSynthesizer.dayID(for:)` for the `dayID`. On a successful `service.sync(dayID:plan:)`, stamps `healthKitSyncedAt = .now` on every set in the fetched array and saves the context. Failures are logged via `os.Logger` subsystem `app` and do not delete or modify local data, per invariant §13. Updated `PushupTrackerApp` to instantiate the controller in `init` (with `HealthKitServiceLive()` as the service) using `@State` (Swift 6 / SwiftUI Observable pattern — no `ObservableObject` needed for a non-published controller) and to call `syncController.appBecameActive()` in an `.onChange(of: scenePhase)` handler when the new phase is `.active`. Cold-launch covers "first launch" since scenePhase transitions to `.active` then. The controller is plain `final class`, not `@Observable`, since the app doesn't read any state from it. Surprise: SourceKit emitted a stale "No such module 'PushupCore'" diagnostic for both the new file and the edited app entry-point right after the writes, but the actual `xcodebuild test` build resolved the package fine and ran `TEST SUCCEEDED` in ~42s with zero compiler warnings; treated those diagnostics as indexer cache lag, not real errors. `swift test --package-path PushupCore`: 20/20 passed. M4 exit criteria are now all checked off; promoted M5 — Settings view to current milestone with concrete exit criteria from spec §8.
+
+### Earlier iteration notes
 
 Added the HealthKit Info.plist key and entitlement on the app target (config-only iteration; no Swift code touched). In `PushupTracker.xcodeproj/project.pbxproj`, added `INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Pushup Tracker adds your pushup sets to Apple Health as workouts so your activity is captured in one place."` to both the Debug and Release `XCBuildConfiguration` blocks for the app target (next to the existing `INFOPLIST_KEY_*` settings; widget target untouched, per spec §6 — no `NSHealthShareUsageDescription` since we don't read). In `PushupTracker/PushupTracker.entitlements`, added `<key>com.apple.developer.healthkit</key><true/>` alongside the existing App Group entry. Did not add the `com.apple.developer.healthkit.access` array — spec §6 only requires the boolean entitlement plus the usage description; the access-types array is optional and only narrows what HK clinical-record categories the app may request, which we don't use. Ran the full `xcodebuild test` on `iPhone 17 Pro / OS=latest`: TEST SUCCEEDED in ~41s, codesign embedded the new HealthKit entitlement into `PushupTracker.app.xcent` cleanly. Did not run `swift test --package-path PushupCore` since no package code changed. Remaining for M4: foreground-sync wiring in the app target (instantiate `HealthKitServiceLive`, request authorization on first launch, debounce 1s on foreground, build plan via `WorkoutSynthesizer`, call `sync(dayID:plan:)`, then stamp `healthKitSyncedAt` on every set for the synced day).
 
@@ -58,7 +59,7 @@ Added the 5-second undo banner to complete M3. Created `PushupTracker/Views/Comm
 
 ## Open questions
 
-_(empty)_
+- M5 About section needs a feedback email address (spec §8 says "TBD email"). Using a `mailto:` placeholder until the human supplies one.
 
 ## Blockers
 
