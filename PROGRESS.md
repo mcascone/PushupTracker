@@ -2,21 +2,21 @@
 
 ## Current milestone
 
-**M5 — Settings view**
+**M6 — History view**
 
-Goal: Add the Settings tab per spec §8 — a visible HealthKit section (permission status: granted / denied / not determined, with an "Open Health settings" link when denied), a "Sync now" button that syncs today + yesterday on demand, and an About section (app version, build number, credits, feedback link). No new user-configurable settings in v1.
+Goal: Per spec §8, add a History tab showing days with activity (newest first, grouped by month, row format `"Monday, Apr 20 — 85 pushups"`), and a tappable `DayDetailView` showing that day's set timeline (read-only in v1).
 
 Exit criteria:
-- [ ] Settings tab in `AppShell` replaced from placeholder `Text("Settings")` with a real `SettingsView`
-- [ ] `SettingsView` shows current HealthKit authorization status (granted / denied / not determined)
-- [ ] When denied, a control opens `Health.app` permissions (or surfaces fallback guidance)
-- [ ] "Sync now" button manually syncs today + yesterday via the same `HealthKitService` used on foreground
-- [ ] About section shows `CFBundleShortVersionString`, `CFBundleVersion`, credits text, and a feedback link target (TBD email — placeholder acceptable, surface as Open question)
+- [ ] History tab in `AppShell` replaced from placeholder `Text("History")` with a real `HistoryView`
+- [ ] `HistoryView` lists days with at least one set, newest first, grouped by month
+- [ ] Each row shows the formatted date and the daily total
+- [ ] Tapping a row navigates to a `DayDetailView` that shows the set timeline for that day (read-only)
+- [ ] Days/totals are derived from `PushupSet` records via `PushupCore` (SwiftData is source of truth)
 - [ ] No third-party deps; SwiftUI only
-- [ ] `swift test --package-path PushupCore` passes
+- [ ] `swift test --package-path PushupCore` passes (add tests if a new derivation helper lands in `PushupCore`)
 - [ ] Full `xcodebuild test` on `PushupTracker` passes
 - [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M5: <description>`
+- [ ] Committed with message `M6: <description>`
 
 ## Completed
 
@@ -24,6 +24,7 @@ Exit criteria:
 - [x] M2 — Data model + store (commit 94e7443)
 - [x] M3 — Today view (commit 3f35911)
 - [x] M4 — HealthKit service (commit a3cd20f)
+- [x] M5 — Settings view (commit pending)
 
 ## Remaining
 
@@ -34,6 +35,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Closed out M5 by wiring the "Sync now" button to the same `HealthSyncController` used on foreground. Refactored `HealthSyncController.syncToday()` into a generalized `private func syncDay(_ day: Date)` that takes any target date — kept the existing fetch-by-day-window + `WorkoutSynthesizer.plan(for:on:)` + `service.sync(dayID:plan:)` + `healthKitSyncedAt` stamping logic identical, just parameterized on `day` instead of always `Date()`. Added `func syncNow() async` that calls `requestAuthorizationIfNeeded()` then `syncDay(today)` then `syncDay(yesterday)` (yesterday derived via `Calendar.current.date(byAdding: .day, value: -1, ...)`), per spec §6 manual-sync trigger. The foreground path (`appBecameActive`) now calls `syncDay(Date())`. Plumbed an `onSyncNow: () async -> Void` closure from `PushupTrackerApp` (capturing `await syncController.syncNow()`) through `AppShell` into `SettingsView`. In `SettingsView`, added a "Sync now" button under the Health section that wraps the call in a `Task` with an `isSyncing` flag (disables the button while in flight) and calls `refreshStatus()` after the sync completes so any newly granted/denied state reflects in the UI. Touched 4 files (`HealthSyncController.swift`, `SettingsView.swift`, `AppShell.swift`, `PushupTrackerApp.swift`) — slightly above the typical 3-file cap, but the change is one tightly coupled feature with no good way to split it without leaving a half-wired button. `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~41s with zero warnings. Saw the now-familiar SourceKit "No such module 'PushupCore'" indexer-cache stale diagnostic on all four edited files; ignored, as the real build resolved the package fine. M5 exit criteria all met; promoted M6 — History view to current milestone with concrete exit criteria from spec §8.
+
+### Earlier iteration notes
 
 Wired the HealthKit authorization status into `SettingsView`. Replaced the placeholder Health section with a `LabeledContent("Permission", value: …)` row driven by a `@State` `HealthKitAuthorizationStatus`, refreshed in a `.task { await healthService.authorizationStatus() }`; status maps to "Granted" / "Denied" / "Not Determined". When the status is `.denied`, an "Open Health Settings" button appears that opens `URL("x-apple-health://")` via `@Environment(\.openURL)` — there is no public deep link to a specific app's Health permissions, so this jumps to the Health app where the user can navigate to Sources → Pushup Tracker. To get the service into the view, threaded `any HealthKitService` from `PushupTrackerApp` (now holding `let healthService: any HealthKitService` alongside the sync controller, instantiating one `HealthKitServiceLive()` and sharing it with both `HealthSyncController` and `AppShell`) → `AppShell(healthService:)` → `SettingsView(healthService:)`. Did not introduce an environment-key wrapper since only one consumer needs it; passing as an init parameter stayed within the 3-file cap. "Sync now" button is still pending — deferred to keep this iteration to 3 files and below the line cap. `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~38s with zero warnings. Saw the now-familiar SourceKit "No such module 'PushupCore'" indexer-cache stale diagnostic on all three edited files; ignored, as the real build resolved the package fine.
 

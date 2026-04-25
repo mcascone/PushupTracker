@@ -3,6 +3,7 @@ import PushupCore
 
 struct AppShell: View {
   let healthService: any HealthKitService
+  let onSyncNow: () async -> Void
 
   var body: some View {
     TabView {
@@ -15,7 +16,7 @@ struct AppShell: View {
       Text("Trends")
         .tabItem { Label("Trends", systemImage: "chart.bar.fill") }
 
-      SettingsView(healthService: healthService)
+      SettingsView(healthService: healthService, onSyncNow: onSyncNow)
         .tabItem { Label("Settings", systemImage: "gearshape") }
     }
   }

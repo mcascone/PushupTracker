@@ -3,8 +3,10 @@ import PushupCore
 
 struct SettingsView: View {
   let healthService: any HealthKitService
+  let onSyncNow: () async -> Void
 
   @State private var authStatus: HealthKitAuthorizationStatus = .notDetermined
+  @State private var isSyncing = false
   @Environment(\.openURL) private var openURL
 
   var body: some View {
@@ -19,6 +21,15 @@ struct SettingsView: View {
               }
             }
           }
+          Button("Sync now") {
+            Task {
+              isSyncing = true
+              await onSyncNow()
+              await refreshStatus()
+              isSyncing = false
+            }
+          }
+          .disabled(isSyncing)
         }
 
         Section("About") {

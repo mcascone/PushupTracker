@@ -22,7 +22,17 @@ final class HealthSyncController {
       try? await Task.sleep(for: .seconds(1))
       guard !Task.isCancelled else { return }
       await self?.requestAuthorizationIfNeeded()
-      await self?.syncToday()
+      await self?.syncDay(Date())
+    }
+  }
+
+  func syncNow() async {
+    await requestAuthorizationIfNeeded()
+    let calendar = Calendar.current
+    let today = Date()
+    await syncDay(today)
+    if let yesterday = calendar.date(byAdding: .day, value: -1, to: today) {
+      await syncDay(yesterday)
     }
   }
 
@@ -36,14 +46,13 @@ final class HealthSyncController {
     }
   }
 
-  private func syncToday() async {
+  private func syncDay(_ day: Date) async {
     let context = ModelContext(container)
     let calendar = Calendar.current
-    let today = Date()
-    let startOfDay = calendar.startOfDay(for: today)
-    guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return }
+    let startOfDay = calendar.startOfDay(for: day)
+    guard let startOfNextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return }
     let descriptor = FetchDescriptor<PushupSet>(
-      predicate: #Predicate { $0.timestamp >= startOfDay && $0.timestamp < startOfTomorrow }
+      predicate: #Predicate { $0.timestamp >= startOfDay && $0.timestamp < startOfNextDay }
     )
     let sets: [PushupSet]
     do {
@@ -52,8 +61,8 @@ final class HealthSyncController {
       logger.error("Fetch failed: \(error.localizedDescription, privacy: .public)")
       return
     }
-    let plan = WorkoutSynthesizer.plan(for: sets, on: today, calendar: calendar)
-    let dayID = WorkoutSynthesizer.dayID(for: today, calendar: calendar)
+    let plan = WorkoutSynthesizer.plan(for: sets, on: day, calendar: calendar)
+    let dayID = WorkoutSynthesizer.dayID(for: day, calendar: calendar)
     do {
       try await service.sync(dayID: dayID, plan: plan)
     } catch {
