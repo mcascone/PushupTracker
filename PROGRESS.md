@@ -23,7 +23,7 @@ Exit criteria:
 - [x] M1 — Project skeleton (commit fe154af)
 - [x] M2 — Data model + store (commit 94e7443)
 - [x] M3 — Today view (commit 3f35911)
-- [x] M4 — HealthKit service (commit pending — recorded next iteration)
+- [x] M4 — HealthKit service (commit a3cd20f)
 
 ## Remaining
 
