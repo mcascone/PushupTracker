@@ -31,7 +31,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
   fi
 
   # Invoke the agent
-  claude "$(cat "$PROMPT_FILE")"
+  claude -p "$(cat "$PROMPT_FILE")"
   agent_exit=$?
 
   if [[ $agent_exit -ne 0 ]]; then
