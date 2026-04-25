@@ -26,7 +26,7 @@ Exit criteria:
 - [x] M4 — HealthKit service (commit a3cd20f)
 - [x] M5 — Settings view (commit 7b4c41b)
 - [x] M6 — History view (commit e723700)
-- [x] M7 — Trends view (commit pending)
+- [x] M7 — Trends view (commit a31719a)
 
 ## Remaining
 
