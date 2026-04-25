@@ -2,30 +2,33 @@
 
 ## Current milestone
 
-**M3 — Today view**
+**M4 — HealthKit service**
 
-Goal: Build the in-app Today tab per spec §8: hero number for today's total, four quick-add buttons (`+1`, `+5`, `+10`, `+25`), per-set timeline below (newest first, swipe-to-delete), and a 5-second undo banner pinned to the bottom after each log. Use `PushupStore` and the shared SwiftData container; no HealthKit wiring yet (that's M4).
+Goal: Implement HealthKit write integration per spec §6 with no new UI surface beyond what foreground sync needs. Add the `HealthKitService` protocol with a live impl and a mock, build the `WorkoutSynthesizer` that turns a day's `PushupSet` records into one `HKWorkout` with nested `HKWorkoutActivity` per set, and wire up the foreground-sync trigger from the app target. Stamp `healthKitSyncedAt` on success. Tests exercise the mock and the synthesizer.
 
 Exit criteria:
-- [ ] App's root `AppShell` injects the shared `ModelContainer` via `SharedContainer.makeModelContainer()`
-- [ ] `TodayView` displays today's total as a hero number (~120pt SF Rounded) and `"N sets today"` subtitle
-- [ ] Four quick-add buttons (`+1`, `+5`, `+10`, `+25`) insert a `PushupSet` via `PushupStore`
-- [ ] Per-set timeline list shows today's sets newest-first, formatted `"h:mm a — N pushups"`, swipe-to-delete removes the set
-- [ ] `UndoBanner` appears for 5 seconds after each log; tapping Undo removes the most-recent set
-- [ ] No HealthKit calls (deferred to M4); no widget code touched
-- [ ] `swift test --package-path PushupCore` still passes
+- [ ] `NSHealthUpdateUsageDescription` set in app target Info.plist; no `NSHealthShareUsageDescription`
+- [ ] HealthKit entitlement enabled on app target only (not widget)
+- [ ] `Constants` enum in `PushupCore` matches spec §6 (`secondsPerPushup`, `kcalPerPushup`, `activityType`, `dayIDMetadataKey`)
+- [ ] `HealthKitService` protocol in `PushupCore` with `requestAuthorization()` and `syncDay(_:)` (or equivalent)
+- [ ] `HealthKitServiceLive` implements the delete-and-rewrite-per-day algorithm using `HKWorkoutBuilder` with one `HKWorkoutActivity` per set
+- [ ] `HealthKitServiceMock` records calls so tests can assert on them
+- [ ] `WorkoutSynthesizer` in `PushupCore` is a pure function: `[PushupSet] -> WorkoutPlan` (start/end/activities/energy) — testable without HealthKit
+- [ ] On successful sync, every set for that day has `healthKitSyncedAt` stamped
+- [ ] App requests authorization on first launch and triggers a sync for today on foreground (debounced 1s)
+- [ ] `swift test --package-path PushupCore` passes (including new synthesizer tests)
 - [ ] Full `xcodebuild test` on `PushupTracker` passes
 - [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M3: <description>`
+- [ ] Committed with message `M4: <description>`
 
 ## Completed
 
 - [x] M1 — Project skeleton (commit fe154af)
 - [x] M2 — Data model + store (commit 94e7443)
+- [x] M3 — Today view (commit pending — this iteration)
 
 ## Remaining
 
-- [ ] M4 — HealthKit service
 - [ ] M5 — Settings view
 - [ ] M6 — History view
 - [ ] M7 — Trends view
@@ -35,7 +38,7 @@ Exit criteria:
 
 ## Last iteration notes
 
-Added the per-set timeline list with swipe-to-delete to `TodayView`. It's a `List` (`.plain` style) under the quick-add buttons, populated from the same `@Query` already in the view, with each row formatted as `"h:mm AM — N pushup(s)"` using `Text(_:format: .dateTime.hour().minute())` and singular/plural pushup wording. `.onDelete(perform:)` calls a new `deleteSets(at:)` helper that maps the `IndexSet` into `todaySets` and calls `modelContext.delete` then `save`. Replaced the trailing `Spacer()` since `List` expands to fill the remaining vertical space. The undo banner is the last remaining piece for M3 and is deferred to the next iteration. Tests all pass: `swift test --package-path PushupCore` 8/8 and `xcodebuild test` on `PushupTracker` succeeded.
+Added the 5-second undo banner to complete M3. Created `PushupTracker/Views/Common/UndoBanner.swift` as a small reusable view: a message label + Undo button on a `.thinMaterial` rounded background, with a move/opacity transition. Wired it into `TodayView` via `.safeAreaInset(edge: .bottom)` so it sits pinned above the tab bar. Added three pieces of state to `TodayView`: `pendingUndoSetID: PersistentIdentifier?`, `pendingUndoCount: Int`, and `undoDismissTask: Task<Void, Never>?`. `add(_:)` now calls `showUndoBanner(for:count:)` after inserting; the helper cancels any in-flight dismiss task, captures the new set's `persistentModelID` and count, then schedules a `Task` that sleeps for 5s and clears the banner only if the same id is still pending (so a fresh log resets the timer cleanly). `undoLastLog()` looks up the pending set in `todaySets` by `persistentModelID` and deletes it via `modelContext`. Also taught `deleteSets(at:)` to cancel the banner if the user swipe-deletes the same set the banner refers to, preventing a stale undo from firing. Tests pass: `swift test --package-path PushupCore` 8/8, full `xcodebuild test` succeeded, no source warnings. Promoted M4 to current milestone with exit criteria drawn from spec §6.
 
 ## Open questions
 

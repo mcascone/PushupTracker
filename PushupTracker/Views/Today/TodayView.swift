@@ -12,6 +12,11 @@ struct TodayView: View {
   private var todaySets: [PushupSet]
 
   private static let quickAddCounts = [1, 5, 10, 25]
+  private static let undoDuration: Duration = .seconds(5)
+
+  @State private var pendingUndoSetID: PersistentIdentifier?
+  @State private var pendingUndoCount: Int = 0
+  @State private var undoDismissTask: Task<Void, Never>?
 
   var body: some View {
     VStack(spacing: 24) {
@@ -20,6 +25,15 @@ struct TodayView: View {
       timelineList
     }
     .padding()
+    .safeAreaInset(edge: .bottom) {
+      if pendingUndoSetID != nil {
+        UndoBanner(
+          message: "Logged \(pendingUndoCount) \(pendingUndoCount == 1 ? "pushup" : "pushups")",
+          onUndo: undoLastLog
+        )
+      }
+    }
+    .animation(.easeInOut(duration: 0.2), value: pendingUndoSetID)
   }
 
   private var timelineList: some View {
@@ -72,13 +86,51 @@ struct TodayView: View {
     let set = PushupSet(count: count)
     modelContext.insert(set)
     try? modelContext.save()
+    showUndoBanner(for: set.persistentModelID, count: count)
   }
 
   private func deleteSets(at offsets: IndexSet) {
     for index in offsets {
-      modelContext.delete(todaySets[index])
+      let set = todaySets[index]
+      if set.persistentModelID == pendingUndoSetID {
+        cancelUndoBanner()
+      }
+      modelContext.delete(set)
     }
     try? modelContext.save()
+  }
+
+  private func showUndoBanner(for id: PersistentIdentifier, count: Int) {
+    undoDismissTask?.cancel()
+    pendingUndoSetID = id
+    pendingUndoCount = count
+    undoDismissTask = Task {
+      try? await Task.sleep(for: Self.undoDuration)
+      guard !Task.isCancelled else { return }
+      await MainActor.run {
+        if pendingUndoSetID == id {
+          pendingUndoSetID = nil
+        }
+      }
+    }
+  }
+
+  private func cancelUndoBanner() {
+    undoDismissTask?.cancel()
+    undoDismissTask = nil
+    pendingUndoSetID = nil
+  }
+
+  private func undoLastLog() {
+    guard let id = pendingUndoSetID,
+          let set = todaySets.first(where: { $0.persistentModelID == id })
+    else {
+      cancelUndoBanner()
+      return
+    }
+    modelContext.delete(set)
+    try? modelContext.save()
+    cancelUndoBanner()
   }
 
   private static func todayPredicate() -> Predicate<PushupSet> {
