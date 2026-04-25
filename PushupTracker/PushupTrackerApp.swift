@@ -1,32 +1,23 @@
-//
-//  PushupTrackerApp.swift
-//  PushupTracker
-//
-//  Created by Maximilian Cascone on 4/23/26.
-//
-
 import SwiftUI
 import SwiftData
+import PushupCore
 
 @main
 struct PushupTrackerApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+  let sharedModelContainer: ModelContainer
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-        .modelContainer(sharedModelContainer)
+  init() {
+    do {
+      sharedModelContainer = try SharedContainer.makeModelContainer()
+    } catch {
+      fatalError("Could not create shared ModelContainer: \(error)")
     }
+  }
+
+  var body: some Scene {
+    WindowGroup {
+      AppShell()
+    }
+    .modelContainer(sharedModelContainer)
+  }
 }
