@@ -25,7 +25,7 @@ Exit criteria:
 
 - [x] M1 — Project skeleton (commit fe154af)
 - [x] M2 — Data model + store (commit 94e7443)
-- [x] M3 — Today view (commit pending — this iteration)
+- [x] M3 — Today view (commit 3f35911)
 
 ## Remaining
 
