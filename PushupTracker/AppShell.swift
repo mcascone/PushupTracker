@@ -13,7 +13,7 @@ struct AppShell: View {
       HistoryView()
         .tabItem { Label("History", systemImage: "calendar") }
 
-      Text("Trends")
+      TrendsView()
         .tabItem { Label("Trends", systemImage: "chart.bar.fill") }
 
       SettingsView(healthService: healthService, onSyncNow: onSyncNow)

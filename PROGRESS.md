@@ -2,21 +2,21 @@
 
 ## Current milestone
 
-**M7 — Trends view**
+**M8 — Home Screen widget**
 
-Goal: Per spec §8, add a Trends tab with a segmented 7 / 30 / 90 day control, a Swift Charts bar chart of daily totals (one `BarMark` per day), and below the chart a summary block showing total for the period, average per day, and best day.
+Goal: Per spec §7, add the `PushupWidgets` widget extension target's Home Screen entries: `LogPushupsIntent` (writes to the shared SwiftData container, debounced HK sync request, `WidgetCenter.reloadAllTimelines()`), a `.systemSmall` widget showing today's total + a single `+10` button, and a `.systemMedium` widget showing today's total on the left + four buttons (`+1`, `+5`, `+10`, `+25`) on the right.
 
 Exit criteria:
-- [ ] Trends tab in `AppShell` replaced from placeholder `Text("Trends")` with a real `TrendsView`
-- [ ] Segmented `Picker` toggles between 7, 30, 90 days
-- [ ] Swift Charts `Chart { BarMark(x: .value("Day", date), y: .value("Pushups", total)) }` renders one bar per day in the selected window (zero-fill missing days so the x-axis is continuous)
-- [ ] Below the chart, three labeled stats: total, average per day (rounded sensibly), best day (date + count)
-- [ ] Daily totals are derived from `PushupSet` records via `PushupCore` (SwiftData is source of truth)
-- [ ] No third-party deps; SwiftUI + Swift Charts only
-- [ ] `swift test --package-path PushupCore` passes (add tests if a new derivation helper lands in `PushupCore`)
+- [ ] `PushupWidgets` target exists with App Group entitlement matching the app
+- [ ] `LogPushupsIntent` (AppIntent) inserts a `PushupSet(count:)` via the shared `ModelContainer` and calls `WidgetCenter.shared.reloadAllTimelines()`
+- [ ] `.systemSmall` widget renders today's total + one `+10` interactive `Button(intent:)`
+- [ ] `.systemMedium` widget renders today's total + four `+1 / +5 / +10 / +25` interactive buttons
+- [ ] Timeline provider refreshes at least every 15 minutes and includes a midnight zero-rollover entry
+- [ ] Tapping a button while the app is closed logs a set that appears in the Today view on next foreground
+- [ ] `swift test --package-path PushupCore` passes
 - [ ] Full `xcodebuild test` on `PushupTracker` passes
 - [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M7: <description>`
+- [ ] Committed with message `M8: <description>`
 
 ## Completed
 
@@ -26,15 +26,19 @@ Exit criteria:
 - [x] M4 — HealthKit service (commit a3cd20f)
 - [x] M5 — Settings view (commit 7b4c41b)
 - [x] M6 — History view (commit e723700)
+- [x] M7 — Trends view (commit pending)
 
 ## Remaining
 
-- [ ] M7 — Trends view
 - [ ] M8 — Home Screen widget
 - [ ] M9 — Lock Screen widget
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Implemented M7 — Trends view in one iteration. Created `PushupTracker/Views/Trends/TrendsView.swift` and replaced the `Text("Trends")` placeholder in `AppShell.swift`. Touched 2 files. The view uses `@Query(sort: \PushupSet.timestamp, order: .forward)` to fetch all sets and a `@State private var window: Window` (rawValue-backed enum: `.week = 7`, `.month = 30`, `.quarter = 90`, conforming to `CaseIterable, Identifiable`) driven by a segmented `Picker`. `dailyTotals` is computed inline: starts from `Calendar.current.startOfDay(for: .now)`, derives `windowStart = today - (days - 1)` via `calendar.date(byAdding:value:to:)`, accumulates `[Date: Int]` totals only for sets where `startOfDay(for:)` falls in `[windowStart, today]`, then builds a continuous `[DailyTotal]` by iterating `0..<window.days` and `compactMap`ping each offset to a `DailyTotal(dayStart:total:)` (defaulting missing days to zero) — that's the spec's "zero-fill missing days so the x-axis is continuous" requirement satisfied without a new package helper. The `Chart` renders one `BarMark(x: .value("Day", entry.dayStart, unit: .day), y: .value("Pushups", entry.total))` per entry inside a fixed-height (220pt) `Form` section, with `chartYAxis { AxisMarks(position: .leading) }`. Below it, a Summary section with three `LabeledContent` rows: total (raw int), average / day (`String(format: "%.1f", …)` or "—" when total is zero), best day formatted as `"Apr 21 · 85"` using a private `bestDayFormat` `.month(.abbreviated).day()` style (or "—" when no positive day exists). Reused the same `private extension Date.FormatStyle { func format(_:) }` shorthand that `HistoryView` introduced. Decision: did not add a `DailyTotalsCalculator` to `PushupCore` since the derivation is ~15 lines, view-local, and adding it would have pushed this iteration to 4+ files (helper + tests + view + AppShell) with no second consumer in sight; spec §13 still holds (SwiftData is source of truth — totals are derived in the view, never read from HealthKit). `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~52s with zero compiler warnings. Saw the familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic on both edited files; ignored, as the real build resolved the package fine. M7 exit criteria all met; promoted M8 — Home Screen widget to current milestone with concrete exit criteria from spec §7.
+
+### Earlier iteration notes
 
 Implemented M6 — History view in one iteration. Added `PushupTracker/Views/History/HistoryView.swift` and `PushupTracker/Views/History/DayDetailView.swift`, and wired `HistoryView()` into `AppShell.swift` replacing the `Text("History")` placeholder. `HistoryView` uses a single `@Query(sort: \PushupSet.timestamp, order: .reverse)` to fetch all sets, then in a computed `monthGroups` property buckets them by `Calendar.current.startOfDay(for:)` (each becoming a `DayGroup` with sorted-ascending sets and a summed total), then buckets the days by year+month (`calendar.date(from: dateComponents([.year, .month], ...))`) into `MonthGroup`s sorted descending. Each `Section` has a header formatted as `month(.wide).year()` (e.g. "April 2026"), and each row inside is a `NavigationLink` showing weekday/month/day plus the daily total in `"N pushups"` form. Empty state uses `ContentUnavailableView` with a calendar icon. `DayDetailView` is read-only: takes the precomputed `dayStart: Date` + `[PushupSet]` directly (avoids dynamic `@Query` predicates), shows a header section with total + set count, and a Timeline section listing each set as `"8:42 AM — 10 pushups"` mirroring `TodayView`'s row format. Title uses inline display mode with the day's formatted date. No new `PushupCore` code was needed — the spec's "derive from sets" rule and the existing `@Query` plus pure Swift grouping cover it. Touched 3 files (within the cap). Used a small `private extension Date.FormatStyle { func format(_:) }` helper so format-style constants read cleanly at the call site. `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~36s with zero compiler warnings. Saw the familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic on all three edited files; ignored, as the real build resolved the package fine. M6 exit criteria all met.
 
