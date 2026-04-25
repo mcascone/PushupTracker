@@ -12,7 +12,7 @@ struct AppShell: View {
       Text("Trends")
         .tabItem { Label("Trends", systemImage: "chart.bar.fill") }
 
-      Text("Settings")
+      SettingsView()
         .tabItem { Label("Settings", systemImage: "gearshape") }
     }
   }
