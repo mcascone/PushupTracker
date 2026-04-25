@@ -36,7 +36,7 @@ Exit criteria:
 ## Completed
 
 - [x] M1 — Project skeleton (commit fe154af)
-- [x] M2 — Data model + store (commit pending)
+- [x] M2 — Data model + store (commit 94e7443)
 
 ## Remaining
 
