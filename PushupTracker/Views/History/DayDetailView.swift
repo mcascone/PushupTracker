@@ -15,6 +15,8 @@ struct DayDetailView: View {
             .foregroundStyle(.secondary)
             .monospacedDigit()
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Total: \(total) \(total == 1 ? "pushup" : "pushups")")
         HStack {
           Text("Sets")
           Spacer()
@@ -22,6 +24,8 @@ struct DayDetailView: View {
             .foregroundStyle(.secondary)
             .monospacedDigit()
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(sets.count) \(sets.count == 1 ? "set" : "sets")")
       }
 
       Section("Timeline") {
@@ -34,6 +38,8 @@ struct DayDetailView: View {
               .foregroundStyle(.secondary)
             Text("\(set.count) \(set.count == 1 ? "pushup" : "pushups")")
           }
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("\(set.count) \(set.count == 1 ? "pushup" : "pushups") at \(set.timestamp.formatted(date: .omitted, time: .shortened))")
         }
       }
     }

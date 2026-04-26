@@ -22,6 +22,8 @@ struct HistoryView: View {
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(Self.rowDateFormat.format(day.dayStart)), \(day.total) \(day.total == 1 ? "pushup" : "pushups")")
               }
             }
           }

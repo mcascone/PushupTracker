@@ -15,7 +15,7 @@ Exit criteria:
 - [x] `PrivacyInfo.xcprivacy` manifest at app target with zero collected data + only required-reason APIs actually used
 - [ ] VoiceOver labels on all interactive elements (quick-add buttons, undo, widget buttons, segmented controls)
   - [x] Today view: hero, quick-add buttons, timeline rows
-  - [ ] History list rows + day detail
+  - [x] History list rows + day detail
   - [ ] Trends segmented control + summary
   - [ ] Settings buttons
   - [ ] Widget buttons (home + lock screen)
@@ -43,6 +43,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Continued M10 VoiceOver work on the History surfaces. Touched two files: `HistoryView.swift` and `DayDetailView.swift`. On the history list rows, the `HStack` inside each `NavigationLink`'s label was decomposing into two fragments under VoiceOver ("Monday, Apr 20" + "85 pushups") — added `.accessibilityElement(children: .combine)` plus a single `.accessibilityLabel("Monday, Apr 20, 85 pushups")` so each row reads as one item before the navigation chevron is announced. Reused the same `Self.rowDateFormat.format(...)` call to keep the spoken text in sync with the visible text. On `DayDetailView`, applied the same combine-and-label pattern to the Total row, the Sets row, and each timeline row. Timeline rows now read like "10 pushups at 8:42 AM" — matching the wording style used in the M10 Today timeline labels for consistency. Pluralization handled inline (`pushup`/`pushups`, `set`/`sets`). Did not touch `HistoryView`'s month section header (`Section(month.title)` — VoiceOver speaks section headers natively from the title string, and adding a custom label there would just duplicate it). Did not touch Trends, Settings, widgets, or the undo banner this iteration. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~40s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on both edited files; ignored.
+
+### Earlier iteration notes
 
 Continued M10 with the smallest VoiceOver slice: added accessibility labels to `TodayView` interactive elements. Single file change (`PushupTracker/Views/Today/TodayView.swift`). Hero section now uses `.accessibilityElement(children: .ignore)` + a combined label like "85 pushups today, 3 sets" so VoiceOver reads the hero as one coherent unit instead of fragmenting the digit + secondary line. Each quick-add button got `.accessibilityLabel("Log N pushup(s)")` so VoiceOver announces the action rather than just speaking "+10" as "plus ten" with no context. Timeline rows got `.accessibilityElement(children: .combine)` plus a label like "10 pushups at 8:42 AM" so each row reads as one item rather than three separate fragments (time, em-dash, count). Pluralization handled inline (`count == 1 ? "pushup" : "pushups"`, `sets`/`set`) matching the visible-text pattern already established in the view. Did not touch `UndoBanner`, the History/Trends/Settings views, or widget intents this iteration — keeping the slice to one file. Broke the existing single VoiceOver checkbox in PROGRESS.md into a sub-checklist so the remaining surfaces (history rows, trends segmented control, settings buttons, widget buttons, undo banner) are tracked discretely. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~39s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on the edited file; ignored.
 
