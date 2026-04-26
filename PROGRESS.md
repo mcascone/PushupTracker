@@ -14,6 +14,12 @@ Exit criteria:
 - [ ] HealthKit-denied path verified end-to-end (local-only mode + Settings affordance)
 - [x] `PrivacyInfo.xcprivacy` manifest at app target with zero collected data + only required-reason APIs actually used
 - [ ] VoiceOver labels on all interactive elements (quick-add buttons, undo, widget buttons, segmented controls)
+  - [x] Today view: hero, quick-add buttons, timeline rows
+  - [ ] History list rows + day detail
+  - [ ] Trends segmented control + summary
+  - [ ] Settings buttons
+  - [ ] Widget buttons (home + lock screen)
+  - [ ] Undo banner
 - [x] `ITSAppUsesNonExemptEncryption = false` in app `Info.plist` (already set as `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` on both Debug and Release)
 - [ ] Archive build (`xcodebuild archive`) succeeds with zero warnings
 - [ ] `swift test --package-path PushupCore` passes
@@ -37,6 +43,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Continued M10 with the smallest VoiceOver slice: added accessibility labels to `TodayView` interactive elements. Single file change (`PushupTracker/Views/Today/TodayView.swift`). Hero section now uses `.accessibilityElement(children: .ignore)` + a combined label like "85 pushups today, 3 sets" so VoiceOver reads the hero as one coherent unit instead of fragmenting the digit + secondary line. Each quick-add button got `.accessibilityLabel("Log N pushup(s)")` so VoiceOver announces the action rather than just speaking "+10" as "plus ten" with no context. Timeline rows got `.accessibilityElement(children: .combine)` plus a label like "10 pushups at 8:42 AM" so each row reads as one item rather than three separate fragments (time, em-dash, count). Pluralization handled inline (`count == 1 ? "pushup" : "pushups"`, `sets`/`set`) matching the visible-text pattern already established in the view. Did not touch `UndoBanner`, the History/Trends/Settings views, or widget intents this iteration — keeping the slice to one file. Broke the existing single VoiceOver checkbox in PROGRESS.md into a sub-checklist so the remaining surfaces (history rows, trends segmented control, settings buttons, widget buttons, undo banner) are tracked discretely. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~39s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on the edited file; ignored.
+
+### Earlier iteration notes
 
 Started M10 with the smallest contained polish slice: added `PushupTracker/PrivacyInfo.xcprivacy` to the app target. Manifest declares `NSPrivacyTracking = false`, empty `NSPrivacyTrackingDomains`, empty `NSPrivacyCollectedDataTypes`, and empty `NSPrivacyAccessedAPITypes` — the app collects no data, has no tracking, and uses no required-reason APIs (verified via grep for `UserDefaults`, `FileManager.*attributesOfItem`, `systemUptime`, `bootTime`, `freeSize`, `volumeAvailable` across the repo — zero hits). No `pbxproj` edits needed; the app target uses `fileSystemSynchronizedGroups` (objectVersion 77, confirmed from previous iterations adding `UndoBanner.swift` and `SettingsView.swift` without pbxproj edits) so dropping the file in `PushupTracker/` was sufficient. Verified post-build: `PrivacyInfo.xcprivacy` is present at the root of `PushupTracker.app` in DerivedData. Also checked off the `ITSAppUsesNonExemptEncryption` exit criterion — `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` is already set on both Debug and Release configs of the app target (and on the widget target's configs too) from earlier project setup, so nothing to do there. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~38s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Touched 1 file. Remaining M10: app icon, launch screen, empty states, error states, HK-denied path verification, VoiceOver labels, archive build check.
 

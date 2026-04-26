@@ -47,6 +47,8 @@ struct TodayView: View {
             .foregroundStyle(.secondary)
           Text("\(set.count) \(set.count == 1 ? "pushup" : "pushups")")
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(set.count) \(set.count == 1 ? "pushup" : "pushups") at \(set.timestamp.formatted(date: .omitted, time: .shortened))")
       }
       .onDelete(perform: deleteSets)
     }
@@ -63,6 +65,8 @@ struct TodayView: View {
         .font(.headline)
         .foregroundStyle(.secondary)
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(todayTotal) \(todayTotal == 1 ? "pushup" : "pushups") today, \(todaySets.count) \(todaySets.count == 1 ? "set" : "sets")")
   }
 
   private var quickAddButtons: some View {
@@ -74,6 +78,7 @@ struct TodayView: View {
             .frame(maxWidth: .infinity, minHeight: 56)
         }
         .buttonStyle(.borderedProminent)
+        .accessibilityLabel("Log \(count) \(count == 1 ? "pushup" : "pushups")")
       }
     }
   }
