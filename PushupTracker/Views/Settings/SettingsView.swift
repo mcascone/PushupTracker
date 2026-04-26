@@ -14,12 +14,17 @@ struct SettingsView: View {
       Form {
         Section("Health") {
           LabeledContent("Permission", value: statusLabel)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Apple Health permission")
+            .accessibilityValue(statusLabel)
           if authStatus == .denied {
             Button("Open Health Settings") {
               if let url = URL(string: "x-apple-health://") {
                 openURL(url)
               }
             }
+            .accessibilityLabel("Open Health settings")
+            .accessibilityHint("Opens the Apple Health app to change permissions")
           }
           Button("Sync now") {
             Task {
@@ -30,6 +35,8 @@ struct SettingsView: View {
             }
           }
           .disabled(isSyncing)
+          .accessibilityLabel(isSyncing ? "Syncing to Apple Health" : "Sync now")
+          .accessibilityHint("Writes today's and yesterday's pushup sets to Apple Health")
         }
 
         Section("About") {
@@ -38,6 +45,8 @@ struct SettingsView: View {
           LabeledContent("Credits", value: "Pushup Tracker")
           if let feedbackURL = Self.feedbackURL {
             Link("Send feedback", destination: feedbackURL)
+              .accessibilityLabel("Send feedback")
+              .accessibilityHint("Opens your mail app to send feedback to the developer")
           }
         }
       }
