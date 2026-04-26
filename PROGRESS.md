@@ -16,7 +16,7 @@ Exit criteria:
 - [ ] VoiceOver labels on all interactive elements (quick-add buttons, undo, widget buttons, segmented controls)
   - [x] Today view: hero, quick-add buttons, timeline rows
   - [x] History list rows + day detail
-  - [ ] Trends segmented control + summary
+  - [x] Trends segmented control + summary
   - [ ] Settings buttons
   - [ ] Widget buttons (home + lock screen)
   - [ ] Undo banner
@@ -43,6 +43,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Continued M10 VoiceOver work on the Trends surface. Single file changed: `PushupTracker/Views/Trends/TrendsView.swift`. The segmented `Picker` was speaking each option as a bare digit ("seven", "thirty", "ninety") with no unit context, so added a per-option `.accessibilityLabel(w.accessibilityLabel)` returning "7 days" / "30 days" / "90 days", and an `.accessibilityLabel("Time window")` on the Picker itself since the visible "Window" title is hidden in `.segmented` style. The bar chart had no accessibility representation at all — VoiceOver was just speaking "Chart" with no content. Added `.accessibilityLabel("Daily pushup totals over the last \(window.days) days")` plus an `.accessibilityValue` summarizing total + average (or "No pushups logged" when the window is empty), so the chart is at least navigable as one element with a useful spoken summary; held off on a full `AXChartDescriptor` since per-bar navigation would be a much bigger lift outside the M10 polish scope. The three Summary `LabeledContent` rows were combined with `.accessibilityElement(children: .ignore)` + explicit label/value pairs so they read as "Total pushups in window, 145" / "Average pushups per day, 20.7" / "Best day, Apr 21 · 85" rather than the default `LabeledContent` wording, which mostly matches but loses the "in window" disambiguation between this row and the upcoming widget total. Added an `accessibilityLabel` computed property to the private `Window` enum next to its visible `label`. Did not touch Settings, widgets, or the undo banner this iteration. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~45s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on the edited file; ignored.
+
+### Earlier iteration notes
 
 Continued M10 VoiceOver work on the History surfaces. Touched two files: `HistoryView.swift` and `DayDetailView.swift`. On the history list rows, the `HStack` inside each `NavigationLink`'s label was decomposing into two fragments under VoiceOver ("Monday, Apr 20" + "85 pushups") — added `.accessibilityElement(children: .combine)` plus a single `.accessibilityLabel("Monday, Apr 20, 85 pushups")` so each row reads as one item before the navigation chevron is announced. Reused the same `Self.rowDateFormat.format(...)` call to keep the spoken text in sync with the visible text. On `DayDetailView`, applied the same combine-and-label pattern to the Total row, the Sets row, and each timeline row. Timeline rows now read like "10 pushups at 8:42 AM" — matching the wording style used in the M10 Today timeline labels for consistency. Pluralization handled inline (`pushup`/`pushups`, `set`/`sets`). Did not touch `HistoryView`'s month section header (`Section(month.title)` — VoiceOver speaks section headers natively from the title string, and adding a custom label there would just duplicate it). Did not touch Trends, Settings, widgets, or the undo banner this iteration. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~40s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on both edited files; ignored.
 

@@ -15,10 +15,13 @@ struct TrendsView: View {
         Section {
           Picker("Window", selection: $window) {
             ForEach(Window.allCases) { w in
-              Text(w.label).tag(w)
+              Text(w.label)
+                .tag(w)
+                .accessibilityLabel(w.accessibilityLabel)
             }
           }
           .pickerStyle(.segmented)
+          .accessibilityLabel("Time window")
         }
 
         Section {
@@ -32,12 +35,23 @@ struct TrendsView: View {
             AxisMarks(position: .leading)
           }
           .frame(height: 220)
+          .accessibilityLabel("Daily pushup totals over the last \(window.days) days")
+          .accessibilityValue(chartAccessibilityValue)
         }
 
         Section("Summary") {
           LabeledContent("Total", value: "\(summary.total)")
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Total pushups in window")
+            .accessibilityValue("\(summary.total)")
           LabeledContent("Average / day", value: summary.averageText)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Average pushups per day")
+            .accessibilityValue(summary.averageText)
           LabeledContent("Best day", value: summary.bestDayText)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Best day")
+            .accessibilityValue(summary.bestDayText)
         }
       }
       .navigationTitle("Trends")
@@ -81,6 +95,16 @@ struct TrendsView: View {
   }
 
   private static let bestDayFormat = Date.FormatStyle.dateTime.month(.abbreviated).day()
+
+  private var chartAccessibilityValue: String {
+    let totals = dailyTotals
+    let sum = totals.reduce(0) { $0 + $1.total }
+    if sum == 0 {
+      return "No pushups logged in the last \(window.days) days"
+    }
+    let average = Double(sum) / Double(totals.count)
+    return "Total \(sum), average \(String(format: "%.1f", average)) per day"
+  }
 }
 
 private struct DailyTotal {
@@ -106,6 +130,13 @@ private enum Window: Int, CaseIterable, Identifiable {
     case .week: "7"
     case .month: "30"
     case .quarter: "90"
+    }
+  }
+  var accessibilityLabel: String {
+    switch self {
+    case .week: "7 days"
+    case .month: "30 days"
+    case .quarter: "90 days"
     }
   }
 }
