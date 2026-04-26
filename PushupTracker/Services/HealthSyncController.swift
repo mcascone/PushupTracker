@@ -27,14 +27,19 @@ final class HealthSyncController {
     debounceTask?.cancel()
     debounceTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(1))
-      guard !Task.isCancelled else { return }
-      await self?.requestAuthorizationIfNeeded()
-      await self?.syncDay(Date())
+      guard !Task.isCancelled, let self else { return }
+      await self.requestAuthorizationIfNeeded()
+      guard await self.service.authorizationStatus() != .denied else { return }
+      await self.syncDay(Date())
     }
   }
 
   func syncNow() async {
     await requestAuthorizationIfNeeded()
+    if await service.authorizationStatus() == .denied {
+      lastSyncOutcome = .failure("Apple Health access is denied. Open Health settings to grant permission.")
+      return
+    }
     let calendar = Calendar.current
     let today = Date()
     await syncDay(today)
