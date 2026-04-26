@@ -25,7 +25,7 @@ Exit criteria:
 - [x] M5 — Settings view (commit 7b4c41b)
 - [x] M6 — History view (commit e723700)
 - [x] M7 — Trends view (commit a31719a)
-- [x] M8 — Home Screen widget (commit pending)
+- [x] M8 — Home Screen widget (commit e1a78e2)
 
 ## Remaining
 
