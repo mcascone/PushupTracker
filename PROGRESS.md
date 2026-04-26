@@ -30,7 +30,7 @@ Exit criteria:
 - [x] M6 — History view (commit e723700)
 - [x] M7 — Trends view (commit a31719a)
 - [x] M8 — Home Screen widget (commit e1a78e2)
-- [x] M9 — Lock Screen widget (commit pending)
+- [x] M9 — Lock Screen widget (commit d6d94ba)
 
 ## Remaining
 
