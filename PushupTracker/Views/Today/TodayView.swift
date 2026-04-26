@@ -53,6 +53,15 @@ struct TodayView: View {
       .onDelete(perform: deleteSets)
     }
     .listStyle(.plain)
+    .overlay {
+      if todaySets.isEmpty {
+        ContentUnavailableView(
+          "No sets yet today",
+          systemImage: "figure.strengthtraining.functional",
+          description: Text("Tap a quick-add button above to log your first set.")
+        )
+      }
+    }
   }
 
   private var heroSection: some View {

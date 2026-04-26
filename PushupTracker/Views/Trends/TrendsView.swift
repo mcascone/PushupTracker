@@ -55,6 +55,15 @@ struct TrendsView: View {
         }
       }
       .navigationTitle("Trends")
+      .overlay {
+        if summary.total == 0 {
+          ContentUnavailableView(
+            "No data in this window",
+            systemImage: "chart.bar.xaxis",
+            description: Text("Log a set on the Today tab to see trends here.")
+          )
+        }
+      }
     }
   }
 
