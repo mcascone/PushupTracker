@@ -29,7 +29,7 @@ struct PushupTrackerApp: App {
 
   var body: some Scene {
     WindowGroup {
-      AppShell(healthService: healthService, onSyncNow: { await syncController.syncNow() })
+      AppShell(healthService: healthService, syncController: syncController)
         .onChange(of: scenePhase) { _, newPhase in
           if newPhase == .active {
             syncController.appBecameActive()

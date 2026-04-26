@@ -3,11 +3,13 @@ import PushupCore
 
 struct SettingsView: View {
   let healthService: any HealthKitService
-  let onSyncNow: () async -> Void
+  @Bindable var syncController: HealthSyncController
 
   @State private var authStatus: HealthKitAuthorizationStatus = .notDetermined
   @State private var isSyncing = false
   @Environment(\.openURL) private var openURL
+
+  private static let lastSyncFormat = Date.FormatStyle.dateTime.month(.abbreviated).day().hour().minute()
 
   var body: some View {
     NavigationStack {
@@ -29,7 +31,7 @@ struct SettingsView: View {
           Button("Sync now") {
             Task {
               isSyncing = true
-              await onSyncNow()
+              await syncController.syncNow()
               await refreshStatus()
               isSyncing = false
             }
@@ -37,6 +39,9 @@ struct SettingsView: View {
           .disabled(isSyncing)
           .accessibilityLabel(isSyncing ? "Syncing to Apple Health" : "Sync now")
           .accessibilityHint("Writes today's and yesterday's pushup sets to Apple Health")
+          if let outcome = syncController.lastSyncOutcome {
+            syncStatusRow(outcome)
+          }
         }
 
         Section("About") {
@@ -52,6 +57,30 @@ struct SettingsView: View {
       }
       .navigationTitle("Settings")
       .task { await refreshStatus() }
+    }
+  }
+
+  @ViewBuilder
+  private func syncStatusRow(_ outcome: HealthSyncOutcome) -> some View {
+    switch outcome {
+    case .success(let date):
+      let formatted = date.formatted(Self.lastSyncFormat)
+      LabeledContent("Last sync", value: formatted)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Last sync succeeded")
+        .accessibilityValue(formatted)
+    case .failure(let message):
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Last sync failed")
+          .font(.subheadline)
+          .foregroundStyle(.red)
+        Text(message)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("Last sync failed")
+      .accessibilityValue(message)
     }
   }
 

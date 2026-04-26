@@ -3,13 +3,20 @@ import SwiftData
 import os
 import PushupCore
 
+enum HealthSyncOutcome: Equatable {
+  case success(Date)
+  case failure(String)
+}
+
 @MainActor
+@Observable
 final class HealthSyncController {
-  private let service: any HealthKitService
-  private let container: ModelContainer
-  private var debounceTask: Task<Void, Never>?
-  private var didRequestAuthorization = false
-  private let logger = Logger(subsystem: "app", category: "HealthSyncController")
+  @ObservationIgnored private let service: any HealthKitService
+  @ObservationIgnored private let container: ModelContainer
+  @ObservationIgnored private var debounceTask: Task<Void, Never>?
+  @ObservationIgnored private var didRequestAuthorization = false
+  @ObservationIgnored private let logger = Logger(subsystem: "app", category: "HealthSyncController")
+  private(set) var lastSyncOutcome: HealthSyncOutcome?
 
   init(container: ModelContainer, service: any HealthKitService) {
     self.container = container
@@ -59,6 +66,7 @@ final class HealthSyncController {
       sets = try context.fetch(descriptor)
     } catch {
       logger.error("Fetch failed: \(error.localizedDescription, privacy: .public)")
+      lastSyncOutcome = .failure(error.localizedDescription)
       return
     }
     let plan = WorkoutSynthesizer.plan(for: sets, on: day, calendar: calendar)
@@ -67,6 +75,7 @@ final class HealthSyncController {
       try await service.sync(dayID: dayID, plan: plan)
     } catch {
       logger.error("Sync failed for \(dayID, privacy: .public): \(error.localizedDescription, privacy: .public)")
+      lastSyncOutcome = .failure(error.localizedDescription)
       return
     }
     let now = Date()
@@ -77,6 +86,9 @@ final class HealthSyncController {
       try context.save()
     } catch {
       logger.error("Saving sync stamp failed: \(error.localizedDescription, privacy: .public)")
+      lastSyncOutcome = .failure(error.localizedDescription)
+      return
     }
+    lastSyncOutcome = .success(now)
   }
 }
