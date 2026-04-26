@@ -19,7 +19,7 @@ Exit criteria:
   - [x] Trends segmented control + summary
   - [x] Settings buttons
   - [ ] Widget buttons (home + lock screen)
-  - [ ] Undo banner
+  - [x] Undo banner
 - [x] `ITSAppUsesNonExemptEncryption = false` in app `Info.plist` (already set as `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` on both Debug and Release)
 - [ ] Archive build (`xcodebuild archive`) succeeds with zero warnings
 - [ ] `swift test --package-path PushupCore` passes
@@ -43,6 +43,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Continued M10 VoiceOver work on the undo banner. Single file changed: `PushupTracker/Views/Common/UndoBanner.swift`. By default VoiceOver was reading the banner as two fragments — the message Text ("Logged 10 pushups") and a bare "Undo" button — and the button's spoken label gave no hint about what would be undone if focused without first focusing the message. Wrapped the banner with `.accessibilityElement(children: .contain)` + `.accessibilityLabel(message)` so the container itself announces the logged-set context, and added an explicit `.accessibilityLabel("Undo last log")` + `.accessibilityHint("Removes the most recent set")` on the Undo button so it stands on its own when focused directly. Used `.contain` rather than `.combine` so the Undo button keeps its button trait and remains independently activatable. Did not touch widgets this iteration. Did not run `swift test --package-path PushupCore` since no package code changed. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~58s with zero compiler warnings. Only widget-button VoiceOver labels remain on the VoiceOver checklist.
+
+### Earlier iteration notes
 
 Continued M10 VoiceOver work on the Settings surface. Single file changed: `PushupTracker/Views/Settings/SettingsView.swift`. The Permission row's default `LabeledContent` reading was acceptable but ambiguous in isolation ("Permission, Granted" — for what?), so combined the row with `.accessibilityElement(children: .ignore)` + an explicit `.accessibilityLabel("Apple Health permission")` and `.accessibilityValue(statusLabel)` so VoiceOver speaks "Apple Health permission, Granted" / "…Denied" / "…Not Determined". The "Open Health Settings" button speaks fine by default but added a `.accessibilityHint("Opens the Apple Health app to change permissions")` since the destination isn't obvious from the title alone (users may expect it to open iOS Settings instead). The "Sync now" button got a state-aware `.accessibilityLabel(isSyncing ? "Syncing to Apple Health" : "Sync now")` so VoiceOver announces the in-flight state when re-focusing the disabled button (the disabled trait is announced separately by the system), plus a `.accessibilityHint("Writes today's and yesterday's pushup sets to Apple Health")` so the scope of the action is clear before activation. The "Send feedback" Link got an explicit label + hint so it's announced as a feedback action rather than just speaking the URL on long-press. Did not touch the Version/Build/Credits `LabeledContent` rows — VoiceOver reads them correctly as "Version, 1.0" etc., and adding labels there would be churn. Did not touch widgets or the undo banner this iteration. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~39s with zero compiler warnings. Did not run `swift test --package-path PushupCore` since no package code changed. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on the edited file; ignored.
 

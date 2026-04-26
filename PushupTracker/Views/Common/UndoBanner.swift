@@ -12,11 +12,15 @@ struct UndoBanner: View {
       Button("Undo", action: onUndo)
         .buttonStyle(.borderedProminent)
         .controlSize(.small)
+        .accessibilityLabel("Undo last log")
+        .accessibilityHint("Removes the most recent set")
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal)
     .transition(.move(edge: .bottom).combined(with: .opacity))
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel(message)
   }
 }
