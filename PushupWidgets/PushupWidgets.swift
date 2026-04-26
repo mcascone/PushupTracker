@@ -7,19 +7,21 @@ import PushupCore
 struct PushupEntry: TimelineEntry {
   let date: Date
   let total: Int
+  let gaugeMax: Int
 }
 
 struct PushupTotalProvider: TimelineProvider {
   nonisolated func placeholder(in context: Context) -> PushupEntry {
-    PushupEntry(date: .now, total: 0)
+    PushupEntry(date: .now, total: 0, gaugeMax: 100)
   }
 
   nonisolated func getSnapshot(in context: Context, completion: @escaping (PushupEntry) -> Void) {
-    completion(PushupEntry(date: .now, total: Self.todayTotal()))
+    let snapshot = Self.snapshot()
+    completion(PushupEntry(date: .now, total: snapshot.total, gaugeMax: snapshot.gaugeMax))
   }
 
   nonisolated func getTimeline(in context: Context, completion: @escaping (Timeline<PushupEntry>) -> Void) {
-    let total = Self.todayTotal()
+    let snapshot = Self.snapshot()
     let now = Date()
     let calendar = Calendar.current
     let startOfTomorrow = calendar.date(
@@ -31,24 +33,42 @@ struct PushupTotalProvider: TimelineProvider {
     var entries: [PushupEntry] = []
     var t = now
     while t < startOfTomorrow {
-      entries.append(PushupEntry(date: t, total: total))
+      entries.append(PushupEntry(date: t, total: snapshot.total, gaugeMax: snapshot.gaugeMax))
       t = t.addingTimeInterval(15 * 60)
     }
-    entries.append(PushupEntry(date: startOfTomorrow, total: 0))
+    entries.append(PushupEntry(date: startOfTomorrow, total: 0, gaugeMax: snapshot.gaugeMax))
     completion(Timeline(entries: entries, policy: .atEnd))
   }
 
-  nonisolated private static func todayTotal() -> Int {
-    guard let container = try? SharedContainer.makeModelContainer() else { return 0 }
+  nonisolated private static func snapshot() -> (total: Int, gaugeMax: Int) {
+    guard let container = try? SharedContainer.makeModelContainer() else {
+      return (0, 100)
+    }
     let context = ModelContext(container)
     let calendar = Calendar.current
-    let start = calendar.startOfDay(for: .now)
-    guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return 0 }
+    let startOfToday = calendar.startOfDay(for: .now)
+    guard let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday),
+          let windowStart = calendar.date(byAdding: .day, value: -29, to: startOfToday) else {
+      return (0, 100)
+    }
     let descriptor = FetchDescriptor<PushupSet>(
-      predicate: #Predicate { $0.timestamp >= start && $0.timestamp < end }
+      predicate: #Predicate { $0.timestamp >= windowStart && $0.timestamp < endOfToday }
     )
     let sets = (try? context.fetch(descriptor)) ?? []
-    return sets.reduce(0) { $0 + $1.count }
+
+    var totalsByDay: [Date: Int] = [:]
+    for set in sets {
+      let day = calendar.startOfDay(for: set.timestamp)
+      totalsByDay[day, default: 0] += set.count
+    }
+    let total = totalsByDay[startOfToday] ?? 0
+    let gaugeMax: Int
+    if totalsByDay.count < 7 {
+      gaugeMax = 100
+    } else {
+      gaugeMax = max(totalsByDay.values.max() ?? 100, 1)
+    }
+    return (total, gaugeMax)
   }
 }
 
@@ -118,6 +138,36 @@ struct PushupMediumWidgetView: View {
   }
 }
 
+struct PushupCircularWidgetView: View {
+  let entry: PushupEntry
+
+  var body: some View {
+    Gauge(value: Double(min(entry.total, entry.gaugeMax)), in: 0...Double(entry.gaugeMax)) {
+      Text("Pushups")
+    } currentValueLabel: {
+      Text("\(entry.total)")
+    }
+    .gaugeStyle(.accessoryCircular)
+  }
+}
+
+struct PushupRectangularWidgetView: View {
+  let entry: PushupEntry
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text("\(entry.total) pushups")
+        .font(.headline)
+      Button(intent: LogPushupsIntent(count: 10)) {
+        Text("+10")
+          .font(.caption.bold())
+      }
+      .buttonStyle(.bordered)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
 struct PushupWidgetEntryView: View {
   @Environment(\.widgetFamily) private var family
   let entry: PushupEntry
@@ -126,6 +176,10 @@ struct PushupWidgetEntryView: View {
     switch family {
     case .systemMedium:
       PushupMediumWidgetView(entry: entry)
+    case .accessoryCircular:
+      PushupCircularWidgetView(entry: entry)
+    case .accessoryRectangular:
+      PushupRectangularWidgetView(entry: entry)
     default:
       PushupSmallWidgetView(entry: entry)
     }
@@ -142,19 +196,31 @@ struct PushupWidgets: Widget {
     }
     .configurationDisplayName("Pushup Tracker")
     .description("Today's pushup total with quick-add buttons.")
-    .supportedFamilies([.systemSmall, .systemMedium])
+    .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular])
   }
 }
 
 #Preview(as: .systemSmall) {
   PushupWidgets()
 } timeline: {
-  PushupEntry(date: .now, total: 0)
-  PushupEntry(date: .now, total: 42)
+  PushupEntry(date: .now, total: 0, gaugeMax: 100)
+  PushupEntry(date: .now, total: 42, gaugeMax: 100)
 }
 
 #Preview(as: .systemMedium) {
   PushupWidgets()
 } timeline: {
-  PushupEntry(date: .now, total: 85)
+  PushupEntry(date: .now, total: 85, gaugeMax: 100)
+}
+
+#Preview(as: .accessoryCircular) {
+  PushupWidgets()
+} timeline: {
+  PushupEntry(date: .now, total: 42, gaugeMax: 100)
+}
+
+#Preview(as: .accessoryRectangular) {
+  PushupWidgets()
+} timeline: {
+  PushupEntry(date: .now, total: 42, gaugeMax: 100)
 }

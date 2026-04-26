@@ -2,19 +2,23 @@
 
 ## Current milestone
 
-**M9 — Lock Screen widget**
+**M10 — Polish pass**
 
-Goal: Per spec §7, add `.accessoryCircular` (today's total in a `Gauge`, max = best daily total in last 30 days, or 100 if <7 days history) and `.accessoryRectangular` (today's total + interactive `+10` button) lock-screen widget families to `PushupWidgets`.
+Goal: Per spec §11 / §15, the final v1 polish pass covering app icon, launch screen, empty states, error states, HealthKit-denied states, `PrivacyInfo.xcprivacy` manifest, VoiceOver labels on all interactive elements, and an archive build check.
 
 Exit criteria:
-- [ ] `.accessoryCircular` widget renders today's total inside a `Gauge`, with sensible max derived from history
-- [ ] `.accessoryRectangular` widget renders today's total + an interactive `+10 LogPushupsIntent` button
-- [ ] Both families share the existing `PushupTotalProvider` timeline (15-min refresh + midnight rollover)
-- [ ] `supportedFamilies` on the widget configuration is extended to include both lock-screen families
+- [ ] App icon set populated in `Assets.xcassets`
+- [ ] Launch screen configured
+- [ ] Empty states reviewed across Today, History, Trends
+- [ ] Error states surfaced for HealthKit failures (Settings)
+- [ ] HealthKit-denied path verified end-to-end (local-only mode + Settings affordance)
+- [ ] `PrivacyInfo.xcprivacy` manifest at app target with zero collected data + only required-reason APIs actually used
+- [ ] VoiceOver labels on all interactive elements (quick-add buttons, undo, widget buttons, segmented controls)
+- [ ] `ITSAppUsesNonExemptEncryption = false` in app `Info.plist`
+- [ ] Archive build (`xcodebuild archive`) succeeds with zero warnings
 - [ ] `swift test --package-path PushupCore` passes
-- [ ] Full `xcodebuild test` on `PushupTracker` passes
-- [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M9: <description>`
+- [ ] Full `xcodebuild test` passes
+- [ ] Committed with message `M10: <description>`
 
 ## Completed
 
@@ -26,13 +30,17 @@ Exit criteria:
 - [x] M6 — History view (commit e723700)
 - [x] M7 — Trends view (commit a31719a)
 - [x] M8 — Home Screen widget (commit e1a78e2)
+- [x] M9 — Lock Screen widget (commit pending)
 
 ## Remaining
 
-- [ ] M9 — Lock Screen widget
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Closed out M9 — Lock Screen widget in one iteration. Extended `PushupWidgets/PushupWidgets.swift` (single file changed) to support `.accessoryCircular` and `.accessoryRectangular` families. Reshaped `PushupEntry` to carry `gaugeMax: Int` alongside `total`, since the circular gauge needs a data-driven scale. Replaced the provider's `todayTotal()` helper with a `snapshot() -> (total: Int, gaugeMax: Int)` that opens `SharedContainer.makeModelContainer()`, builds a fresh `ModelContext` (still `nonisolated`, no actor hop, same pattern M8 settled on), and runs a single `FetchDescriptor<PushupSet>` over `[startOfToday-29d, endOfToday)` — one query covers both today's total and the 30-day history needed for the gauge max. Buckets fetched sets into `[Date: Int]` keyed by `calendar.startOfDay(for:)`. Today's total = `totalsByDay[startOfToday] ?? 0`. Gauge max per spec §7: if fewer than 7 distinct days have any sets in the 30-day window, fall back to 100; otherwise use `max(totalsByDay.values.max(), 1)` so a divide-by-zero gauge can't happen even on the seam case (≥7 days but all-zero is impossible since empty days don't get keys). Added `PushupCircularWidgetView` rendering a `Gauge(value:in:)` with `.accessoryCircular` style, clamping `value` to `min(total, gaugeMax)` so an over-cap day doesn't produce a >1.0 fraction. Added `PushupRectangularWidgetView` with the total as a headline `Text` and a `Button(intent: LogPushupsIntent(count: 10))` styled `.bordered` — same intent already wired in M8, so no AppIntent changes were needed. Routed both families through `PushupWidgetEntryView`'s existing family switch and added them to `supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular])`. Added `#Preview` blocks for the two new families. Touched 1 file. `swift test --package-path PushupCore`: 21/21 passed (no package code changed). Full `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~38s with zero compiler warnings. SourceKit re-emitted its familiar stale "No such module 'PushupCore'" diagnostic on the edited file — non-blocking, the real build resolved the package fine. M9 exit criteria all met; promoted M10 — Polish pass to current milestone with concrete exit criteria from spec §11 and §15.
+
+### Earlier iteration notes
 
 Closed out M8 — Home Screen widget. The previous (uncommitted) iteration had drafted the widget code (`PushupWidgets/AppIntent.swift` with `LogPushupsIntent`, `PushupWidgets/PushupWidgets.swift` with `PushupTotalProvider`, `PushupSmallWidgetView`, `PushupMediumWidgetView`, and the `StaticConfiguration` widget bundle) but the build was failing under Swift 6 strict concurrency. The widget extension inherits `default-isolation=MainActor`, which made `Task { @MainActor in … }` capture the non-Sendable `completion: @escaping (PushupEntry) -> Void` callback inside a MainActor-isolated closure — Swift 6 flagged this as a `sending`-parameter race in two places (`getSnapshot`, `getTimeline`). Tried a `Task { … }` + `await MainActor.run { … }` rewrite; same error because the outer `Task` still inherited MainActor. Marked the provider methods `nonisolated` — still failed because `Task { … }` itself takes a `sending` closure and capturing the non-Sendable `completion` inside that closure tripped the same diagnostic. Root fix: drop the Task hop entirely and do the read synchronously in the nonisolated provider methods (the WidgetKit timeline provider already runs off-main, so a sync SwiftData fetch is fine and avoids the actor-hop). Replaced the `@MainActor`-only `PushupStore` round-trip in `todayTotal()` with a direct `ModelContext(container)` + `FetchDescriptor<PushupSet>(predicate: #Predicate { $0.timestamp >= start && $0.timestamp < end })` against a fresh context built per-call from the shared `SharedContainer.makeModelContainer()`. This bypasses `PushupStore`'s `@MainActor` constraint without modifying the M2 store (per anti-drift rule §13). Added `import SwiftData` to the widget file. Build now succeeds, `xcodebuild test` TEST SUCCEEDED, `swift test --package-path PushupCore` 21/21 passes. Zero source warnings (the two `appintentsmetadataprocessor` warnings about "No AppIntents.framework dependency found" are tooling-level and unrelated; SourceKit's familiar "No such module 'PushupCore'" stale-index diagnostic is also non-blocking, the real build resolves the package fine). The widget's `LogPushupsIntent.perform()` opens `SharedContainer.makeModelContainer()`, inserts `PushupSet(count:)` via `PushupStore.insert(count:)`, and calls `WidgetCenter.shared.reloadAllTimelines()`. The timeline provider produces an entry every 15 minutes from now until next midnight, then a final entry at midnight with `total: 0` (zero rollover, per spec §7). Per spec §7, no HK sync request is fired from the widget intent itself — HK sync is deferred to the next app foreground via the existing `HealthSyncController`, since the widget extension does not have HK entitlement. Touched 2 files. M8 exit criteria all met; promoted M9 — Lock Screen widget to current milestone.
 
