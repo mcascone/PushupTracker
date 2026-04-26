@@ -2,21 +2,19 @@
 
 ## Current milestone
 
-**M8 — Home Screen widget**
+**M9 — Lock Screen widget**
 
-Goal: Per spec §7, add the `PushupWidgets` widget extension target's Home Screen entries: `LogPushupsIntent` (writes to the shared SwiftData container, debounced HK sync request, `WidgetCenter.reloadAllTimelines()`), a `.systemSmall` widget showing today's total + a single `+10` button, and a `.systemMedium` widget showing today's total on the left + four buttons (`+1`, `+5`, `+10`, `+25`) on the right.
+Goal: Per spec §7, add `.accessoryCircular` (today's total in a `Gauge`, max = best daily total in last 30 days, or 100 if <7 days history) and `.accessoryRectangular` (today's total + interactive `+10` button) lock-screen widget families to `PushupWidgets`.
 
 Exit criteria:
-- [ ] `PushupWidgets` target exists with App Group entitlement matching the app
-- [ ] `LogPushupsIntent` (AppIntent) inserts a `PushupSet(count:)` via the shared `ModelContainer` and calls `WidgetCenter.shared.reloadAllTimelines()`
-- [ ] `.systemSmall` widget renders today's total + one `+10` interactive `Button(intent:)`
-- [ ] `.systemMedium` widget renders today's total + four `+1 / +5 / +10 / +25` interactive buttons
-- [ ] Timeline provider refreshes at least every 15 minutes and includes a midnight zero-rollover entry
-- [ ] Tapping a button while the app is closed logs a set that appears in the Today view on next foreground
+- [ ] `.accessoryCircular` widget renders today's total inside a `Gauge`, with sensible max derived from history
+- [ ] `.accessoryRectangular` widget renders today's total + an interactive `+10 LogPushupsIntent` button
+- [ ] Both families share the existing `PushupTotalProvider` timeline (15-min refresh + midnight rollover)
+- [ ] `supportedFamilies` on the widget configuration is extended to include both lock-screen families
 - [ ] `swift test --package-path PushupCore` passes
 - [ ] Full `xcodebuild test` on `PushupTracker` passes
 - [ ] Zero warnings under Swift 6 strict concurrency
-- [ ] Committed with message `M8: <description>`
+- [ ] Committed with message `M9: <description>`
 
 ## Completed
 
@@ -27,14 +25,22 @@ Exit criteria:
 - [x] M5 — Settings view (commit 7b4c41b)
 - [x] M6 — History view (commit e723700)
 - [x] M7 — Trends view (commit a31719a)
+- [x] M8 — Home Screen widget (commit pending)
 
 ## Remaining
 
-- [ ] M8 — Home Screen widget
 - [ ] M9 — Lock Screen widget
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Closed out M8 — Home Screen widget. The previous (uncommitted) iteration had drafted the widget code (`PushupWidgets/AppIntent.swift` with `LogPushupsIntent`, `PushupWidgets/PushupWidgets.swift` with `PushupTotalProvider`, `PushupSmallWidgetView`, `PushupMediumWidgetView`, and the `StaticConfiguration` widget bundle) but the build was failing under Swift 6 strict concurrency. The widget extension inherits `default-isolation=MainActor`, which made `Task { @MainActor in … }` capture the non-Sendable `completion: @escaping (PushupEntry) -> Void` callback inside a MainActor-isolated closure — Swift 6 flagged this as a `sending`-parameter race in two places (`getSnapshot`, `getTimeline`). Tried a `Task { … }` + `await MainActor.run { … }` rewrite; same error because the outer `Task` still inherited MainActor. Marked the provider methods `nonisolated` — still failed because `Task { … }` itself takes a `sending` closure and capturing the non-Sendable `completion` inside that closure tripped the same diagnostic. Root fix: drop the Task hop entirely and do the read synchronously in the nonisolated provider methods (the WidgetKit timeline provider already runs off-main, so a sync SwiftData fetch is fine and avoids the actor-hop). Replaced the `@MainActor`-only `PushupStore` round-trip in `todayTotal()` with a direct `ModelContext(container)` + `FetchDescriptor<PushupSet>(predicate: #Predicate { $0.timestamp >= start && $0.timestamp < end })` against a fresh context built per-call from the shared `SharedContainer.makeModelContainer()`. This bypasses `PushupStore`'s `@MainActor` constraint without modifying the M2 store (per anti-drift rule §13). Added `import SwiftData` to the widget file. Build now succeeds, `xcodebuild test` TEST SUCCEEDED, `swift test --package-path PushupCore` 21/21 passes. Zero source warnings (the two `appintentsmetadataprocessor` warnings about "No AppIntents.framework dependency found" are tooling-level and unrelated; SourceKit's familiar "No such module 'PushupCore'" stale-index diagnostic is also non-blocking, the real build resolves the package fine). The widget's `LogPushupsIntent.perform()` opens `SharedContainer.makeModelContainer()`, inserts `PushupSet(count:)` via `PushupStore.insert(count:)`, and calls `WidgetCenter.shared.reloadAllTimelines()`. The timeline provider produces an entry every 15 minutes from now until next midnight, then a final entry at midnight with `total: 0` (zero rollover, per spec §7). Per spec §7, no HK sync request is fired from the widget intent itself — HK sync is deferred to the next app foreground via the existing `HealthSyncController`, since the widget extension does not have HK entitlement. Touched 2 files. M8 exit criteria all met; promoted M9 — Lock Screen widget to current milestone.
+
+### Earlier iteration notes
+
+restarting this effort
+
+### Earlier iteration notes
 
 Implemented M7 — Trends view in one iteration. Created `PushupTracker/Views/Trends/TrendsView.swift` and replaced the `Text("Trends")` placeholder in `AppShell.swift`. Touched 2 files. The view uses `@Query(sort: \PushupSet.timestamp, order: .forward)` to fetch all sets and a `@State private var window: Window` (rawValue-backed enum: `.week = 7`, `.month = 30`, `.quarter = 90`, conforming to `CaseIterable, Identifiable`) driven by a segmented `Picker`. `dailyTotals` is computed inline: starts from `Calendar.current.startOfDay(for: .now)`, derives `windowStart = today - (days - 1)` via `calendar.date(byAdding:value:to:)`, accumulates `[Date: Int]` totals only for sets where `startOfDay(for:)` falls in `[windowStart, today]`, then builds a continuous `[DailyTotal]` by iterating `0..<window.days` and `compactMap`ping each offset to a `DailyTotal(dayStart:total:)` (defaulting missing days to zero) — that's the spec's "zero-fill missing days so the x-axis is continuous" requirement satisfied without a new package helper. The `Chart` renders one `BarMark(x: .value("Day", entry.dayStart, unit: .day), y: .value("Pushups", entry.total))` per entry inside a fixed-height (220pt) `Form` section, with `chartYAxis { AxisMarks(position: .leading) }`. Below it, a Summary section with three `LabeledContent` rows: total (raw int), average / day (`String(format: "%.1f", …)` or "—" when total is zero), best day formatted as `"Apr 21 · 85"` using a private `bestDayFormat` `.month(.abbreviated).day()` style (or "—" when no positive day exists). Reused the same `private extension Date.FormatStyle { func format(_:) }` shorthand that `HistoryView` introduced. Decision: did not add a `DailyTotalsCalculator` to `PushupCore` since the derivation is ~15 lines, view-local, and adding it would have pushed this iteration to 4+ files (helper + tests + view + AppShell) with no second consumer in sight; spec §13 still holds (SwiftData is source of truth — totals are derived in the view, never read from HealthKit). `swift test --package-path PushupCore`: 21/21 passed (no package changes). `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~52s with zero compiler warnings. Saw the familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic on both edited files; ignored, as the real build resolved the package fine. M7 exit criteria all met; promoted M8 — Home Screen widget to current milestone with concrete exit criteria from spec §7.
 

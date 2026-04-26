@@ -1,18 +1,28 @@
-//
-//  AppIntent.swift
-//  PushupWidgets
-//
-//  Created by Maximilian Cascone on 4/24/26.
-//
-
-import WidgetKit
 import AppIntents
+import WidgetKit
+import PushupCore
 
-struct ConfigurationAppIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource { "Configuration" }
-    static var description: IntentDescription { "This is an example widget." }
+struct LogPushupsIntent: AppIntent {
+  static let title: LocalizedStringResource = "Log Pushups"
+  static let description = IntentDescription("Adds a set of pushups to today's log.")
 
-    // An example configurable parameter.
-    @Parameter(title: "Favorite Emoji", default: "😃")
-    var favoriteEmoji: String
+  @Parameter(title: "Count")
+  var count: Int
+
+  init() {
+    self.count = 10
+  }
+
+  init(count: Int) {
+    self.count = count
+  }
+
+  @MainActor
+  func perform() async throws -> some IntentResult {
+    let container = try SharedContainer.makeModelContainer()
+    let store = PushupStore(container: container)
+    try store.insert(count: count)
+    WidgetCenter.shared.reloadAllTimelines()
+    return .result()
+  }
 }
