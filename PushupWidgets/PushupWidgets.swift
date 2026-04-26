@@ -83,6 +83,7 @@ private struct QuickAddButton: View {
     }
     .buttonStyle(.borderedProminent)
     .tint(.accentColor)
+    .accessibilityLabel("Log \(count) pushup\(count == 1 ? "" : "s")")
   }
 }
 
@@ -100,6 +101,8 @@ private struct TotalLabel: View {
         .font(.caption2)
         .foregroundStyle(.secondary)
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(total) pushup\(total == 1 ? "" : "s") today")
   }
 }
 
@@ -148,6 +151,8 @@ struct PushupCircularWidgetView: View {
       Text("\(entry.total)")
     }
     .gaugeStyle(.accessoryCircular)
+    .accessibilityLabel("Pushups today")
+    .accessibilityValue("\(entry.total) of \(entry.gaugeMax)")
   }
 }
 
@@ -158,11 +163,13 @@ struct PushupRectangularWidgetView: View {
     VStack(alignment: .leading, spacing: 2) {
       Text("\(entry.total) pushups")
         .font(.headline)
+        .accessibilityLabel("\(entry.total) pushup\(entry.total == 1 ? "" : "s") today")
       Button(intent: LogPushupsIntent(count: 10)) {
         Text("+10")
           .font(.caption.bold())
       }
       .buttonStyle(.bordered)
+      .accessibilityLabel("Log 10 pushups")
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }

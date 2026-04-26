@@ -18,7 +18,7 @@ Exit criteria:
   - [x] History list rows + day detail
   - [x] Trends segmented control + summary
   - [x] Settings buttons
-  - [ ] Widget buttons (home + lock screen)
+  - [x] Widget buttons (home + lock screen)
   - [x] Undo banner
 - [x] `ITSAppUsesNonExemptEncryption = false` in app `Info.plist` (already set as `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` on both Debug and Release)
 - [ ] Archive build (`xcodebuild archive`) succeeds with zero warnings
@@ -43,6 +43,10 @@ Exit criteria:
 - [ ] M10 — Polish pass
 
 ## Last iteration notes
+
+Continued M10 VoiceOver work on the widget surfaces — the last item on the VoiceOver checklist. Single file changed: `PushupWidgets/PushupWidgets.swift`. The shared `QuickAddButton` (used by both small and medium home-screen widgets) was speaking its label as "+10" → "plus ten" with no action context, so added `.accessibilityLabel("Log \(count) pushup(s)")` matching the wording used on the in-app `TodayView` quick-add buttons. The shared `TotalLabel` was reading as two fragments ("85" + "pushups today"); combined with `.accessibilityElement(children: .ignore)` + a single label so it reads as one element. The lock-screen `.accessoryRectangular` got the same `Log 10 pushups` label on its inline `+10` button plus a label on its total `Text` so the headline is announced with units rather than a bare numeral. The `.accessoryCircular` `Gauge` was previously speaking just "Pushups" with no value; added `.accessibilityLabel("Pushups today")` + `.accessibilityValue("\(total) of \(gaugeMax)")` so VoiceOver speaks both the current total and the gauge's data-driven max (which is itself meaningful — it's "your best day in the last 30 days" or 100 in the cold-start case). Did not modify any AppIntent code or the timeline provider. Did not run `swift test --package-path PushupCore` since no package code changed. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~37s with zero compiler warnings. Familiar SourceKit "No such module 'PushupCore'" stale-index diagnostic appeared on the edited file; ignored. The VoiceOver sub-checklist is now fully checked; remaining M10 work is app icon, launch screen, empty-state review, error-state surfacing in Settings, HK-denied path verification, and the archive-build check.
+
+### Earlier iteration notes
 
 Continued M10 VoiceOver work on the undo banner. Single file changed: `PushupTracker/Views/Common/UndoBanner.swift`. By default VoiceOver was reading the banner as two fragments — the message Text ("Logged 10 pushups") and a bare "Undo" button — and the button's spoken label gave no hint about what would be undone if focused without first focusing the message. Wrapped the banner with `.accessibilityElement(children: .contain)` + `.accessibilityLabel(message)` so the container itself announces the logged-set context, and added an explicit `.accessibilityLabel("Undo last log")` + `.accessibilityHint("Removes the most recent set")` on the Undo button so it stands on its own when focused directly. Used `.contain` rather than `.combine` so the Undo button keeps its button trait and remains independently activatable. Did not touch widgets this iteration. Did not run `swift test --package-path PushupCore` since no package code changed. `xcodebuild test` on iPhone 17 Pro / OS=latest: TEST SUCCEEDED in ~58s with zero compiler warnings. Only widget-button VoiceOver labels remain on the VoiceOver checklist.
 
